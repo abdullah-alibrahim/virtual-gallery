@@ -1,0 +1,53 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# next
+.next/
+out/
+build/
+next-env.d.ts
+
+# production artefacts
+dist/
+*.tsbuildinfo
+
+# environment — never commit real credentials
+.env
+.env.local
+.env*.local
+serviceAccount*.json
+*-firebase-adminsdk-*.json
+
+# firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+storage-debug.log
+emulator-data/
+
+# testing
+coverage/
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+
+# editor / os
+.DS_Store
+*.pem
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# local scratch
+.tmp-home/

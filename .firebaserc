@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "virtual-gallery-dev",
+    "dev": "virtual-gallery-dev",
+    "staging": "virtual-gallery-staging",
+    "prod": "virtual-gallery-prod"
+  }
+}

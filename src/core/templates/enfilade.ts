@@ -1,0 +1,292 @@
+import type { SceneTemplate } from "@/core/entities";
+import { createFrameSpec } from "@/core/value-objects/frame-spec";
+
+/**
+ * Enfilade — three rooms in a row with aligned doorways down the centre line.
+ * Classic museum procession: entry → middle → end hall.
+ */
+export const enfiladeTemplate: SceneTemplate = {
+  id: "enfilade",
+  version: 1,
+  name: "Enfilade",
+  tagline: "Three rooms in a row, aligned doorways",
+  category: "museum",
+  tier: "pro",
+  status: "active",
+  shell: {
+    glbPath: "/templates/enfilade/v1/shell.glb",
+    scale: 1,
+  },
+  environment: {
+    exposure: 1.07,
+    background: "#c2bbb0",
+    toneMapping: "aces",
+  },
+  lighting: {
+    ambient: { color: "#f2ebe3", intensity: 0.34 },
+    hemisphere: {
+      skyColor: "#f6f0e8",
+      groundColor: "#a89880",
+      intensity: 0.4,
+    },
+    key: {
+      color: "#fff4e8",
+      intensity: 1.08,
+      position: [0.5, 6.5, 0],
+    },
+    fill: {
+      color: "#ddd4c8",
+      intensity: 0.32,
+      position: [-3, 2.8, 6],
+    },
+    rim: {
+      color: "#f8f4ee",
+      intensity: 0.16,
+      position: [0, 3.2, -8],
+    },
+    presets: [
+      { id: "procession", label: "Procession", spotIntensity: 1.08, temperatureK: 4200 },
+    ],
+  },
+  materials: {
+    wall: "#e4e0d8",
+    floor: "#a8906c",
+    ceiling: "#f0ece4",
+    trim: "#c8bfb0",
+    wallRoughness: 0.95,
+    floorRoughness: 0.52,
+    floorMetalness: 0.035,
+    ceilingRoughness: 0.99,
+    floorStyle: "parquet",
+  },
+  walls: [
+    // —— Room C (north end hall) ——
+    {
+      id: "end-north",
+      label: "End hall north",
+      origin: [0, 0, -9.5],
+      normal: [0, 0, 1],
+      width: 9,
+      height: 3.7,
+      anchors: [
+        { position: [-2.8, 1.62, 0.04], maxWidth: 2.2, maxHeight: 2.4 },
+        { position: [0, 1.65, 0.04], maxWidth: 2.6, maxHeight: 2.8, preferred: true },
+        { position: [2.8, 1.62, 0.04], maxWidth: 2.2, maxHeight: 2.4 },
+      ],
+    },
+    {
+      id: "end-east",
+      label: "End hall east",
+      origin: [4.5, 0, -6.5],
+      normal: [-1, 0, 0],
+      width: 6,
+      height: 3.7,
+      anchors: [
+        { position: [0.04, 1.6, -1.2], maxWidth: 1.9, maxHeight: 2.1 },
+        { position: [0.04, 1.6, 1.5], maxWidth: 1.9, maxHeight: 2.1 },
+      ],
+    },
+    {
+      id: "end-west",
+      label: "End hall west",
+      origin: [-4.5, 0, -6.5],
+      normal: [1, 0, 0],
+      width: 6,
+      height: 3.7,
+      anchors: [
+        { position: [-0.04, 1.6, -1.2], maxWidth: 1.9, maxHeight: 2.1 },
+        { position: [-0.04, 1.6, 1.5], maxWidth: 1.9, maxHeight: 2.1 },
+      ],
+    },
+    // Door B↔C at z = -3.5, gap |x| < 1.25
+    {
+      id: "door-bc-east",
+      label: "Doorway B–C east",
+      origin: [2.85, 0, -3.5],
+      normal: [0, 0, 1],
+      width: 3.3,
+      height: 3.5,
+      anchors: [],
+    },
+    {
+      id: "door-bc-west",
+      label: "Doorway B–C west",
+      origin: [-2.85, 0, -3.5],
+      normal: [0, 0, 1],
+      width: 3.3,
+      height: 3.5,
+      anchors: [],
+    },
+    {
+      id: "door-bc-east-back",
+      label: "Doorway B–C east (middle)",
+      origin: [2.85, 0, -3.5],
+      normal: [0, 0, -1],
+      width: 3.3,
+      height: 3.5,
+      anchors: [
+        { position: [0.6, 1.55, -0.04], maxWidth: 1.5, maxHeight: 1.7 },
+      ],
+    },
+    {
+      id: "door-bc-west-back",
+      label: "Doorway B–C west (middle)",
+      origin: [-2.85, 0, -3.5],
+      normal: [0, 0, -1],
+      width: 3.3,
+      height: 3.5,
+      anchors: [
+        { position: [-0.6, 1.55, -0.04], maxWidth: 1.5, maxHeight: 1.7 },
+      ],
+    },
+    // —— Room B (middle) ——
+    {
+      id: "mid-east",
+      label: "Middle east",
+      origin: [4, 0, 0],
+      normal: [-1, 0, 0],
+      width: 7,
+      height: 3.5,
+      anchors: [
+        { position: [0.04, 1.58, -1.8], maxWidth: 1.9, maxHeight: 2.1 },
+        { position: [0.04, 1.58, 1.8], maxWidth: 1.9, maxHeight: 2.1, preferred: true },
+      ],
+    },
+    {
+      id: "mid-west",
+      label: "Middle west",
+      origin: [-4, 0, 0],
+      normal: [1, 0, 0],
+      width: 7,
+      height: 3.5,
+      anchors: [
+        { position: [-0.04, 1.58, -1.8], maxWidth: 1.9, maxHeight: 2.1 },
+        { position: [-0.04, 1.58, 1.8], maxWidth: 1.9, maxHeight: 2.1 },
+      ],
+    },
+    // Door A↔B at z = 3.5
+    {
+      id: "door-ab-east",
+      label: "Doorway A–B east",
+      origin: [2.6, 0, 3.5],
+      normal: [0, 0, 1],
+      width: 2.7,
+      height: 3.4,
+      anchors: [],
+    },
+    {
+      id: "door-ab-west",
+      label: "Doorway A–B west",
+      origin: [-2.6, 0, 3.5],
+      normal: [0, 0, 1],
+      width: 2.7,
+      height: 3.4,
+      anchors: [],
+    },
+    {
+      id: "door-ab-east-back",
+      label: "Doorway A–B east (entry)",
+      origin: [2.6, 0, 3.5],
+      normal: [0, 0, -1],
+      width: 2.7,
+      height: 3.4,
+      anchors: [],
+    },
+    {
+      id: "door-ab-west-back",
+      label: "Doorway A–B west (entry)",
+      origin: [-2.6, 0, 3.5],
+      normal: [0, 0, -1],
+      width: 2.7,
+      height: 3.4,
+      anchors: [],
+    },
+    // —— Room A (south entry) ——
+    {
+      id: "entry-south",
+      label: "Entry south",
+      origin: [0, 0, 8.5],
+      normal: [0, 0, -1],
+      width: 7,
+      height: 3.4,
+      anchors: [
+        { position: [0, 1.52, -0.04], maxWidth: 1.8, maxHeight: 2.0 },
+      ],
+    },
+    {
+      id: "entry-east",
+      label: "Entry east",
+      origin: [3.5, 0, 6],
+      normal: [-1, 0, 0],
+      width: 5,
+      height: 3.4,
+      anchors: [
+        { position: [0.04, 1.52, 0], maxWidth: 1.8, maxHeight: 2.0 },
+      ],
+    },
+    {
+      id: "entry-west",
+      label: "Entry west",
+      origin: [-3.5, 0, 6],
+      normal: [1, 0, 0],
+      width: 5,
+      height: 3.4,
+      anchors: [
+        { position: [-0.04, 1.52, 0], maxWidth: 1.8, maxHeight: 2.0 },
+      ],
+    },
+    {
+      id: "lintel-bc",
+      label: "Lintel B–C",
+      origin: [0, 2.55, -3.5],
+      normal: [0, 0, 1],
+      width: 2.6,
+      height: 1.0,
+      anchors: [],
+    },
+    {
+      id: "lintel-ab",
+      label: "Lintel A–B",
+      origin: [0, 2.45, 3.5],
+      normal: [0, 0, 1],
+      width: 2.5,
+      height: 0.95,
+      anchors: [],
+    },
+  ],
+  spawn: { position: [0, 1.58, 7.2], yaw: Math.PI },
+  walkBounds: [
+    // End hall
+    [-4.0, -9.0],
+    [4.0, -9.0],
+    [4.0, -3.7],
+    [1.15, -3.7],
+    [1.15, -3.3],
+    [3.5, -3.3],
+    // Middle
+    [3.5, 3.3],
+    [1.15, 3.3],
+    [1.15, 3.7],
+    [3.0, 3.7],
+    // Entry
+    [3.0, 8.0],
+    [-3.0, 8.0],
+    [-3.0, 3.7],
+    [-1.15, 3.7],
+    [-1.15, 3.3],
+    [-3.5, 3.3],
+    [-3.5, -3.3],
+    [-1.15, -3.3],
+    [-1.15, -3.7],
+    [-4.0, -3.7],
+  ],
+  capacity: { recommended: 14, max: 20 },
+  frameDefaults: createFrameSpec({
+    style: "gallery",
+    color: "#28241e",
+    widthCm: 3.5,
+    matteCm: 8,
+    matteColor: "#f4efe6",
+  }),
+  preview: { imagePath: "/templates/enfilade/preview.jpg" },
+};

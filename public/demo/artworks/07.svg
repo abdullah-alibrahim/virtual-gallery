@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="1600" viewBox="0 0 1300 1600">
+  <defs>
+    <linearGradient id="ink" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0%" stop-color="#f2ebe0"/><stop offset="100%" stop-color="#c8b8a0"/>
+    </linearGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2"/><feColorMatrix values="0 0 0 0 0.2  0 0 0 0 0.15  0 0 0 0 0.1  0 0 0 0.18 0"/></filter>
+  </defs>
+  <rect width="1300" height="1600" fill="url(#ink)"/>
+  <path d="M280 200 Q650 400 420 900 T780 1400" fill="none" stroke="#1a1410" stroke-width="48" opacity="0.75"/>
+  <path d="M900 180 Q700 500 980 900 T620 1450" fill="none" stroke="#3a2a20" stroke-width="22" opacity="0.45"/>
+  <circle cx="640" cy="720" r="90" fill="#8a4030" opacity="0.55"/>
+  <rect width="1300" height="1600" filter="url(#grain)" opacity="0.45"/>
+</svg>

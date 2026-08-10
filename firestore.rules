@@ -1,0 +1,167 @@
+rules_version = '2';
+
+/**
+ * Firestore security rules — Virtual Gallery.
+ *
+ * Roles live in Firebase Auth custom claims (`workspaceId`, `role`), refreshed
+ * by a Cloud Function when membership changes. Rules never call get() on a
+ * members document — that would bill a read on every operation.
+ *
+ * Claims shape:
+ *   request.auth.token.workspaces = { [workspaceId]: "owner"|"admin"|"editor"|"viewer" }
+ */
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function roleIn(workspaceId) {
+      return request.auth.token.workspaces[workspaceId];
+    }
+
+    function isMember(workspaceId) {
+      return isSignedIn() && roleIn(workspaceId) in ['owner', 'admin', 'editor', 'viewer'];
+    }
+
+    function canEdit(workspaceId) {
+      return isSignedIn() && roleIn(workspaceId) in ['owner', 'admin', 'editor'];
+    }
+
+    function isOwner(workspaceId) {
+      return isSignedIn() && roleIn(workspaceId) == 'owner';
+    }
+
+    function isAdminOrOwner(workspaceId) {
+      return isSignedIn() && roleIn(workspaceId) in ['owner', 'admin'];
+    }
+
+    // ── users ──────────────────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read, write: if isSignedIn() && uid() == userId;
+    }
+
+    // ── workspaces ─────────────────────────────────────────────────────────
+    match /workspaces/{workspaceId} {
+      allow read: if isMember(workspaceId);
+      // plan / usage / billing are Cloud-Function-only fields. Clients may
+      // update name and nothing else.
+      allow update: if isAdminOrOwner(workspaceId)
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['name', 'updatedAt']);
+      allow create, delete: if false; // bootstrap + teardown are CF-only
+
+      match /members/{memberId} {
+        allow read: if isMember(workspaceId);
+        allow write: if isOwner(workspaceId);
+      }
+
+      match /invites/{inviteId} {
+        allow read: if isAdminOrOwner(workspaceId);
+        allow write: if false; // Admin SDK / API only
+      }
+    }
+
+    // ── public artist profiles ─────────────────────────────────────────────
+    match /artistProfiles/{workspaceId} {
+      allow read: if true;
+      allow write: if isOwner(workspaceId);
+    }
+
+    // ── galleries ──────────────────────────────────────────────────────────
+    match /galleries/{galleryId} {
+      allow read: if resource.data.status == 'published'
+        || (isSignedIn() && isMember(resource.data.workspaceId));
+
+      allow create: if canEdit(request.resource.data.workspaceId)
+        && request.resource.data.ownerId == uid()
+        && request.resource.data.status == 'draft';
+
+      allow update: if canEdit(resource.data.workspaceId)
+        // clients may never forge counters, publishedVersion, or manifestPath
+        && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['counters', 'publishedVersion', 'manifestPath',
+                     'publishedAt', 'ownerId', 'workspaceId']);
+
+      allow delete: if isAdminOrOwner(resource.data.workspaceId);
+
+      match /artworks/{artworkId} {
+        allow read: if get(/databases/$(database)/documents/galleries/$(galleryId)).data.status == 'published'
+          || (isSignedIn() && isMember(get(/databases/$(database)/documents/galleries/$(galleryId)).data.workspaceId));
+        allow write: if canEdit(get(/databases/$(database)/documents/galleries/$(galleryId)).data.workspaceId)
+          && request.resource.data.workspaceId == get(/databases/$(database)/documents/galleries/$(galleryId)).data.workspaceId;
+      }
+
+      match /settings/{docId} {
+        allow read: if get(/databases/$(database)/documents/galleries/$(galleryId)).data.status == 'published'
+          || (isSignedIn() && isMember(get(/databases/$(database)/documents/galleries/$(galleryId)).data.workspaceId));
+        allow write: if canEdit(get(/databases/$(database)/documents/galleries/$(galleryId)).data.workspaceId);
+      }
+
+      match /versions/{versionId} {
+        allow read: if isMember(get(/databases/$(database)/documents/galleries/$(galleryId)).data.workspaceId);
+        allow write: if false; // CF-only
+      }
+
+      match /analytics/{dayId} {
+        allow read: if isMember(get(/databases/$(database)/documents/galleries/$(galleryId)).data.workspaceId);
+        allow write: if false; // CF-only
+      }
+
+      match /leads/{leadId} {
+        allow read: if isMember(get(/databases/$(database)/documents/galleries/$(galleryId)).data.workspaceId);
+        // Public create only. App Check + rate limit live in the callable;
+        // the rule is a second line of defence that rejects oversized payloads.
+        allow create: if request.resource.data.keys().hasOnly([
+            'galleryId', 'workspaceId', 'artworkId', 'name', 'email',
+            'message', 'status', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.status == 'new'
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() <= 120
+          && request.resource.data.email is string
+          && request.resource.data.email.size() <= 254
+          && request.resource.data.message is string
+          && request.resource.data.message.size() > 0
+          && request.resource.data.message.size() <= 2000;
+        allow update, delete: if isMember(get(/databases/$(database)/documents/galleries/$(galleryId)).data.workspaceId);
+      }
+    }
+
+    // ── assets ─────────────────────────────────────────────────────────────
+    match /assets/{assetId} {
+      allow read: if isMember(resource.data.workspaceId);
+      allow create: if canEdit(request.resource.data.workspaceId)
+        && request.resource.data.status == 'uploading';
+      // status / variants / meta are stamped by the image pipeline only
+      allow update: if canEdit(resource.data.workspaceId)
+        && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['status', 'variants', 'meta', 'workspaceId']);
+      allow delete: if isAdminOrOwner(resource.data.workspaceId);
+    }
+
+    // ── templates (catalogue) ──────────────────────────────────────────────
+    match /templates/{templateId} {
+      allow read: if true;
+      allow write: if false; // admin SDK only
+    }
+
+    // ── slug registry ──────────────────────────────────────────────────────
+    match /slugs/{slug} {
+      allow read: if true; // existence check for the slug editor
+      allow write: if false; // CF transaction only
+    }
+
+    // ── async jobs ─────────────────────────────────────────────────────────
+    match /jobs/{jobId} {
+      allow read: if isSignedIn() && resource.data.ownerId == uid();
+      allow write: if false; // CF-only
+    }
+  }
+}

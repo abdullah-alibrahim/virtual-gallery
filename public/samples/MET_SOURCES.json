@@ -1,0 +1,110 @@
+[
+  {
+    "file": "01.jpg",
+    "title": "The Starry Night",
+    "year": 1889,
+    "medium": "Oil on canvas",
+    "artist": "Vincent van Gogh",
+    "source": "Wikimedia Commons",
+    "license": "Public Domain",
+    "color": "#1a2a4a",
+    "w": 1280,
+    "h": 1014
+  },
+  {
+    "file": "02.jpg",
+    "title": "Self-Portrait",
+    "year": 1660,
+    "medium": "Oil on canvas",
+    "artist": "Rembrandt",
+    "source": "The Met Open Access",
+    "license": "CC0 / Public Domain",
+    "color": "#5a5048",
+    "w": 1319,
+    "h": 1600
+  },
+  {
+    "file": "03.jpg",
+    "title": "The Great Wave off Kanagawa",
+    "year": 1831,
+    "medium": "Woodblock print",
+    "artist": "Katsushika Hokusai",
+    "source": "Wikimedia Commons",
+    "license": "Public Domain",
+    "color": "#8a3030",
+    "w": 1280,
+    "h": 883
+  },
+  {
+    "file": "04.jpg",
+    "title": "Water Lilies",
+    "year": 1906,
+    "medium": "Oil on canvas",
+    "artist": "Claude Monet",
+    "source": "Wikimedia Commons",
+    "license": "Public Domain",
+    "color": "#6a8a7a",
+    "w": 1280,
+    "h": 1230
+  },
+  {
+    "file": "05.jpg",
+    "title": "A Pair of Shoes",
+    "year": 1886,
+    "medium": "Oil on canvas",
+    "artist": "Vincent van Gogh",
+    "source": "The Met Open Access",
+    "license": "CC0 / Public Domain",
+    "color": "#6a5040",
+    "w": 1600,
+    "h": 1338
+  },
+  {
+    "file": "06.jpg",
+    "title": "The Fighting Temeraire",
+    "year": 1839,
+    "medium": "Oil on canvas",
+    "artist": "J. M. W. Turner",
+    "source": "Wikimedia Commons",
+    "license": "Public Domain",
+    "color": "#6a7a88",
+    "w": 1280,
+    "h": 951
+  },
+  {
+    "file": "07.jpg",
+    "title": "Arrangement in Flesh Colour and Black",
+    "year": 1883,
+    "medium": "Oil on canvas",
+    "artist": "James McNeill Whistler",
+    "source": "The Met Open Access",
+    "license": "CC0 / Public Domain",
+    "color": "#4a4540",
+    "w": 759,
+    "h": 1600
+  },
+  {
+    "file": "08.jpg",
+    "title": "Trees and Houses Near the Jas de Bouffan",
+    "year": 1885,
+    "medium": "Oil on canvas",
+    "artist": "Paul C\u00e9zanne",
+    "source": "The Met Open Access",
+    "license": "CC0 / Public Domain",
+    "color": "#8a7060",
+    "w": 1600,
+    "h": 1202
+  },
+  {
+    "file": "09.jpg",
+    "title": "Sunflowers",
+    "year": 1887,
+    "medium": "Oil on canvas",
+    "artist": "Vincent van Gogh",
+    "source": "The Met Open Access",
+    "license": "CC0 / Public Domain",
+    "color": "#c4a040",
+    "w": 1600,
+    "h": 1130
+  }
+]

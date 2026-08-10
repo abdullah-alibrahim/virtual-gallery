@@ -1,0 +1,68 @@
+rules_version = '2';
+
+/**
+ * Storage rules — Virtual Gallery.
+ *
+ * PRIVATE originals: only the owning workspace's editors may read/write.
+ * PUBLIC variants and published manifests: world-readable, write CF-only.
+ *
+ * Visitors never receive a path under /originals. That is the product promise
+ * that publishing does not mean giving the file away.
+ */
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function roleIn(workspaceId) {
+      return request.auth.token.workspaces[workspaceId];
+    }
+
+    function canEdit(workspaceId) {
+      return isSignedIn() && roleIn(workspaceId) in ['owner', 'admin', 'editor'];
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/(jpeg|png|webp|tiff|gif)');
+    }
+
+    function underLimit() {
+      // 80 MB hard cap at the rule layer. Plan quotas are enforced earlier in
+      // the upload callable; this is a defence against a forged client.
+      return request.resource.size < 80 * 1024 * 1024;
+    }
+
+    // Private originals — never publicly readable.
+    match /workspaces/{workspaceId}/originals/{assetId}/{fileName} {
+      allow read: if canEdit(workspaceId);
+      allow write: if canEdit(workspaceId) && isImage() && underLimit();
+      allow delete: if canEdit(workspaceId);
+    }
+
+    // Derived public variants — world-readable, write only via Admin SDK.
+    match /workspaces/{workspaceId}/assets/{assetId}/{fileName} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Compiled published output (versioned artefacts).
+    match /published/{gallerySlug}/{version}/{fileName} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Live pointer — short-cached; flipping this is the publish commit.
+    match /published/{gallerySlug}/latest.json {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Shared template assets.
+    match /templates/{templateId}/{version}/{fileName} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
