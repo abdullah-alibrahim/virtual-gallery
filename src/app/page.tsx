@@ -10,7 +10,7 @@ import { RoomStill } from "@/components/shared/room-still";
 import { buttonVariants } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import { softMuseumTemplate } from "@/core/templates";
-import { LandingHero } from "@/features/marketing";
+import { LandingHero, ServicesFeatures } from "@/features/marketing";
 import { getMarketingNavAuth } from "@/features/marketing/lib/nav-auth";
 import { getTranslator } from "@/i18n/server";
 import { cn } from "@/lib/utils";
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 
 /**
  * Marketing landing — atmospheric, brand-first, one hero job.
- * Below the fold: one job per section (walk, templates, collectors, hang steps).
+ * Below the fold: one job per section (services, walk, templates, collectors, hang steps).
  */
 export default async function LandingPage() {
   const [{ cta, secondaryCta }, { t }] = await Promise.all([
@@ -43,6 +43,8 @@ export default async function LandingPage() {
       />
 
       <LandingHero />
+
+      <ServicesFeatures />
 
       <section className="relative z-10 border-t border-border bg-background">
         <div
