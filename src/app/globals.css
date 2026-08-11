@@ -196,6 +196,23 @@
   }
 }
 
+@keyframes splash-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes splash-brand-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes scale-in {
   from {
     opacity: 0;
@@ -431,6 +448,131 @@
   }
 }
 
+/* First-paint splash — SSR markup in root layout, dismissed client-side */
+html.vg-splash-active {
+  overflow: hidden;
+}
+
+#vg-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 99990;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(
+      ellipse 70% 50% at 50% 35%,
+      oklch(0.96 0.012 85 / 0.9),
+      transparent 60%
+    ),
+    var(--luxury-stone, #fafaf8);
+  color: var(--luxury-ink, #1c1916);
+  transition:
+    opacity 480ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 480ms linear;
+}
+
+#vg-splash[data-state="out"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.vg-splash-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.5rem;
+  text-align: center;
+  animation: splash-brand-in 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.vg-splash-brand {
+  margin: 0;
+  font-family: var(--font-instrument-serif), var(--font-noto-arabic), ui-serif,
+    Georgia, serif;
+  font-size: clamp(1.75rem, 4.5vw, 2.35rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--luxury-ink, #1c1916);
+}
+
+.vg-splash-rule {
+  width: 2.25rem;
+  height: 1px;
+  background: color-mix(in oklab, var(--luxury-brass, #8a7048) 55%, transparent);
+}
+
+.vg-splash-spinner {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.35rem;
+  border: 1px solid color-mix(in oklab, var(--luxury-ink, #1c1916) 12%, transparent);
+  border-top-color: var(--luxury-brass, #8a7048);
+  border-radius: 9999px;
+  animation: splash-spin 0.9s linear infinite;
+}
+
+.vg-splash-label {
+  margin: 0;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--luxury-ink, #1c1916) 45%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not(.light) #vg-splash {
+    background:
+      radial-gradient(
+        ellipse 70% 50% at 50% 35%,
+        oklch(0.22 0.01 55 / 0.85),
+        transparent 60%
+      ),
+      oklch(0.16 0.008 55);
+    color: oklch(0.96 0.006 85);
+  }
+
+  html:not(.light) .vg-splash-brand {
+    color: oklch(0.96 0.006 85);
+  }
+
+  html:not(.light) .vg-splash-spinner {
+    border-color: color-mix(in oklab, oklch(0.96 0.006 85) 14%, transparent);
+    border-top-color: oklch(0.7 0.055 78);
+  }
+
+  html:not(.light) .vg-splash-label {
+    color: color-mix(in oklab, oklch(0.96 0.006 85) 45%, transparent);
+  }
+}
+
+.dark #vg-splash {
+  background:
+    radial-gradient(
+      ellipse 70% 50% at 50% 35%,
+      oklch(0.22 0.01 55 / 0.85),
+      transparent 60%
+    ),
+    var(--luxury-stone, #131313);
+  color: var(--luxury-ink, #f5f2eb);
+}
+
+.dark .vg-splash-brand {
+  color: var(--luxury-ink, #f5f2eb);
+}
+
+.dark .vg-splash-spinner {
+  border-color: color-mix(in oklab, var(--luxury-ink, #f5f2eb) 14%, transparent);
+  border-top-color: var(--luxury-brass, #b89a6a);
+}
+
+.dark .vg-splash-label {
+  color: color-mix(in oklab, var(--luxury-ink, #f5f2eb) 45%, transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .page-enter,
   .stagger-fade,
@@ -447,8 +589,14 @@
   .viewer-sheet-in,
   .viewer-lightbox-in,
   .hero-rise,
-  .wall-label-in {
+  .wall-label-in,
+  .vg-splash-inner,
+  .vg-splash-spinner {
     animation: none;
+  }
+
+  #vg-splash {
+    transition: none;
   }
 }
 

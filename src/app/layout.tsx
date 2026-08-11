@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Instrument_Serif, Noto_Sans_Arabic } from "next/font/google";
 
 import { Providers } from "@/components/shared/providers";
+import { SplashDismisser } from "@/components/shared/splash-loader";
 import { siteConfig } from "@/config/site";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { localeDirection } from "@/i18n/locales";
@@ -69,10 +70,32 @@ export default async function RootLayout({
   const t = createTranslator(getDictionary(locale));
 
   return (
-    <html lang={locale} dir={dir} data-locale={locale} suppressHydrationWarning>
+    <html
+      lang={locale}
+      dir={dir}
+      data-locale={locale}
+      className="vg-splash-active"
+      suppressHydrationWarning
+    >
       <body
         className={`${inter.variable} ${instrumentSerif.variable} ${notoArabic.variable}`}
       >
+        {/* SSR splash — visible before JS; dismissed by SplashDismisser */}
+        <div
+          id="vg-splash"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+          aria-label={t("common.loading")}
+        >
+          <div className="vg-splash-inner">
+            <p className="vg-splash-brand">{siteConfig.name}</p>
+            <div className="vg-splash-rule" aria-hidden="true" />
+            <div className="vg-splash-spinner" aria-hidden="true" />
+            <p className="vg-splash-label">{t("common.loading")}</p>
+          </div>
+        </div>
+        <SplashDismisser />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:start-3 focus:z-[100] focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:shadow"
