@@ -4,11 +4,14 @@
  * Flow: client signs in with Firebase Auth → POSTs the ID token here → we mint
  * a Firebase session cookie (httpOnly) so Server Components and middleware can
  * authenticate without trusting the client.
+ *
+ * Firebase Admin is loaded only when a cookie must be verified or minted —
+ * marketing pages can call getSession() without pulling admin into the
+ * anonymous render path.
  */
 
 import { cookies } from "next/headers";
 
-import { getAdminAuth } from "./admin";
 import {
   SESSION_COOKIE_NAME,
   SESSION_EXPIRES_MS,
@@ -27,14 +30,21 @@ export interface SessionUser {
   readonly platformAdmin: boolean;
 }
 
+async function loadAdminAuth() {
+  const { getAdminAuth } = await import("./admin");
+  return getAdminAuth();
+}
+
 export async function createSessionCookie(idToken: string): Promise<string> {
-  return getAdminAuth().createSessionCookie(idToken, {
+  const auth = await loadAdminAuth();
+  return auth.createSessionCookie(idToken, {
     expiresIn: SESSION_EXPIRES_MS,
   });
 }
 
 export async function revokeUserSessions(uid: string): Promise<void> {
-  await getAdminAuth().revokeRefreshTokens(uid);
+  const auth = await loadAdminAuth();
+  await auth.revokeRefreshTokens(uid);
 }
 
 /**
@@ -47,10 +57,8 @@ export async function verifySessionCookie(
   if (!sessionCookie) return null;
 
   try {
-    const decoded = await getAdminAuth().verifySessionCookie(
-      sessionCookie,
-      true,
-    );
+    const auth = await loadAdminAuth();
+    const decoded = await auth.verifySessionCookie(sessionCookie, true);
     const workspaces =
       (decoded.workspaces as Record<string, string> | undefined) ?? {};
 
@@ -71,7 +79,9 @@ export async function verifySessionCookie(
 /** Reads and verifies the session from the incoming request cookies. */
 export async function getSession(): Promise<SessionUser | null> {
   const jar = await cookies();
-  return verifySessionCookie(jar.get(SESSION_COOKIE_NAME)?.value);
+  const value = jar.get(SESSION_COOKIE_NAME)?.value;
+  if (!value) return null;
+  return verifySessionCookie(value);
 }
 
 export function sessionCookieOptions(maxAgeMs = SESSION_EXPIRES_MS) {

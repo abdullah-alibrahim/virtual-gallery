@@ -82,7 +82,9 @@ const nextConfig: NextConfig = {
 
   allowedDevOrigins: resolveAllowedDevOrigins(),
 
-  serverExternalPackages: ["firebase-admin", "stripe"],
+  // Keep Admin SDK (and its CJS jwks-rsa → jose chain) outside the RSC bundle.
+  // jose is pinned to v4 via package.json overrides so require() stays valid.
+  serverExternalPackages: ["firebase-admin", "jwks-rsa", "jose", "stripe"],
 
   typescript: {
     ignoreBuildErrors: false,

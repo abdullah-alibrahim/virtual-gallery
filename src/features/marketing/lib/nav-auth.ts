@@ -6,21 +6,27 @@ import { getTranslator } from "@/i18n/server";
 /**
  * Auth-aware marketing CTAs — Studio when signed in, Sign in + Create otherwise.
  * Resolved in app pages so shared components stay free of infrastructure.
+ *
+ * getSession() only loads firebase-admin when a session cookie is present, so
+ * anonymous marketing renders stay free of the Admin SDK.
  */
 export async function getMarketingNavAuth(): Promise<{
   cta: MarketingNavCta;
   secondaryCta: MarketingNavCta | null;
+  signedIn: boolean;
 }> {
   const [{ t }, session] = await Promise.all([getTranslator(), getSession()]);
   if (session) {
     return {
       cta: { href: "/dashboard", label: t("common.studio") },
       secondaryCta: null,
+      signedIn: true,
     };
   }
   return {
     cta: { href: SIGN_IN_HREF, label: t("common.signIn") },
     secondaryCta: { href: "/sign-up", label: t("common.create") },
+    signedIn: false,
   };
 }
 

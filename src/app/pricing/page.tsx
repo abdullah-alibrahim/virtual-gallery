@@ -16,7 +16,6 @@ import {
 import type { PlanId } from "@/core/entities";
 import { PricingAtmosphere } from "@/features/marketing/components/pricing-atmosphere";
 import { getMarketingNavAuth } from "@/features/marketing/lib/nav-auth";
-import { getSession } from "@/infrastructure/firebase/session";
 import { getTranslator } from "@/i18n/server";
 import type { Translator } from "@/i18n";
 import { formatStorageBytes, formatTemplateTiers } from "@/lib/format";
@@ -57,12 +56,10 @@ export const metadata: Metadata = {
 };
 
 export default async function PricingPage() {
-  const [{ cta, secondaryCta }, session, { t }] = await Promise.all([
+  const [{ cta, secondaryCta, signedIn }, { t }] = await Promise.all([
     getMarketingNavAuth(),
-    getSession(),
     getTranslator(),
   ]);
-  const signedIn = Boolean(session);
 
   return (
     <main className="relative min-h-dvh overflow-hidden">
