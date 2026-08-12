@@ -7,8 +7,13 @@ import { randomUUID } from "node:crypto";
 
 import { NotFoundError, ValidationError } from "@/core/errors";
 import { getAdminDb } from "@/infrastructure/firebase/admin";
+import {
+  sendEnquiryConfirmation,
+  sendEnquiryToArtist,
+} from "@/infrastructure/email/send";
 import { assertRateLimit } from "@/infrastructure/security/rate-limit";
 import { hourBucket } from "@/lib/rate-limit";
+import { siteConfig } from "@/config/site";
 
 export interface CreateLeadInput {
   readonly galleryId: string;
@@ -83,5 +88,83 @@ export async function createLead(input: CreateLeadInput): Promise<{ id: string }
     });
   });
 
+  void notifyEnquiry({
+    workspaceId,
+    galleryId: input.galleryId,
+    galleryTitle: String(gallery.title ?? "Gallery"),
+    artworkId: input.artworkId,
+    collectorName: name,
+    collectorEmail: email,
+    message,
+  }).catch((error) => {
+    console.error("[enquiry-email] failed", error);
+  });
+
   return { id: leadId };
+}
+
+async function notifyEnquiry(input: {
+  workspaceId: string;
+  galleryId: string;
+  galleryTitle: string;
+  artworkId: string | null;
+  collectorName: string;
+  collectorEmail: string;
+  message: string;
+}): Promise<void> {
+  const db = getAdminDb();
+  const workspaceSnap = await db
+    .collection("workspaces")
+    .doc(input.workspaceId)
+    .get();
+  const ownerId = String(workspaceSnap.data()?.ownerId ?? "");
+  if (!ownerId) return;
+
+  const [memberSnap, userSnap, artworkSnap] = await Promise.all([
+    db
+      .collection("workspaces")
+      .doc(input.workspaceId)
+      .collection("members")
+      .doc(ownerId)
+      .get(),
+    db.collection("users").doc(ownerId).get(),
+    input.artworkId
+      ? db
+          .collection("galleries")
+          .doc(input.galleryId)
+          .collection("artworks")
+          .doc(input.artworkId)
+          .get()
+      : Promise.resolve(null),
+  ]);
+
+  const artworkTitle = artworkSnap?.exists
+    ? String(artworkSnap.data()?.title ?? "") || null
+    : null;
+  const artistName =
+    String(memberSnap.data()?.displayName ?? userSnap.data()?.displayName ?? "") ||
+    "Artist";
+  const artistEmail = String(
+    memberSnap.data()?.email ?? userSnap.data()?.email ?? "",
+  );
+
+  if (artistEmail) {
+    await sendEnquiryToArtist({
+      to: artistEmail,
+      artistName,
+      collectorName: input.collectorName,
+      collectorEmail: input.collectorEmail,
+      message: input.message,
+      galleryTitle: input.galleryTitle,
+      artworkTitle,
+      inboxUrl: `${siteConfig.url}/inbox`,
+    });
+  }
+
+  await sendEnquiryConfirmation({
+    to: input.collectorEmail,
+    collectorName: input.collectorName,
+    artistName,
+    galleryTitle: input.galleryTitle,
+  });
 }

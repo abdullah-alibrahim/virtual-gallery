@@ -32,6 +32,8 @@ describe("buildIsmailRifaiManifest", () => {
 
     const boat04 = manifest.artworks.find((a) => a.id === "ismail-boat-04");
     expect(boat04?.dimensions).toEqual({ width: 70, height: 70, unit: "cm" });
+    expect(boat04?.bilingual?.titleEn).toBeTruthy();
+    expect(boat04?.bilingual?.titleAr).toBeTruthy();
     expect(boat04?.placement.scale).toBeLessThanOrEqual(1);
 
     const arabic = buildIsmailRifaiManifest("http://localhost:3000", "ar");

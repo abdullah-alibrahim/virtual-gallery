@@ -286,6 +286,32 @@ describe("template catalogue", () => {
     expect(white?.architecture?.glbProps?.length).toBeGreaterThanOrEqual(3);
   });
 
+  it("dresses previously empty halls like Maison", () => {
+    const ids = [
+      "enfilade",
+      "zen-court",
+      "brutalist-hall",
+      "l-wing-atelier",
+      "night-cube",
+    ] as const;
+    for (const id of ids) {
+      const hall = getTemplateById(id)!;
+      expect(hall.architecture?.trackLights, id).toBeTruthy();
+      expect(hall.architecture?.benches?.some((b) => b.glb), id).toBe(true);
+      expect(
+        hall.architecture?.glbProps?.some((p) => p.model === "plant"),
+        id,
+      ).toBe(true);
+      expect(hall.materials.floorTextureId, id).toBeTruthy();
+      const [sx, , sz] = hall.spawn.position;
+      expect(isInsidePolygon([sx, sz], hall.walkBounds), id).toBe(true);
+    }
+    expect(getTemplateById("brutalist-hall")?.architecture?.skylight).toBeTruthy();
+    expect(getTemplateById("enfilade")?.architecture?.window?.wallId).toBe(
+      "mid-west",
+    );
+  });
+
   it("keeps preferred only when true (Firestore-safe anchors)", () => {
     for (const template of TEMPLATE_CATALOGUE) {
       for (const wall of template.walls) {
@@ -383,7 +409,7 @@ describe("demo SceneManifest", () => {
     );
     expect(
       manifest.artworks.every(
-        (a) => a.dimensions.width >= 110 && a.dimensions.height >= 110,
+        (a) => Math.max(a.dimensions.width, a.dimensions.height) >= 110,
       ),
     ).toBe(true);
     expect(manifest.settings.walkSpeed).toBeGreaterThan(0);

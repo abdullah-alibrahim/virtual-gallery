@@ -5,8 +5,8 @@ import {
   MarketingFooter,
   MarketingNav,
 } from "@/components/shared/marketing-nav";
+import { BrandLockup } from "@/components/shared/house-mark";
 import { buttonVariants } from "@/components/ui/button";
-import { siteConfig } from "@/config/site";
 import { getMarketingNavAuth } from "@/features/marketing/lib/nav-auth";
 import { getTranslator } from "@/i18n/server";
 import { cn } from "@/lib/utils";
@@ -48,9 +48,7 @@ export default async function DemoIndexPage() {
         </div>
 
         <div className="page-enter max-w-2xl space-y-5">
-          <p className="font-serif text-5xl leading-none tracking-tight text-foreground/20 sm:text-6xl">
-            {siteConfig.name}
-          </p>
+          <BrandLockup nameClassName="text-2xl sm:text-3xl" />
           <div aria-hidden className="rule-grow h-px w-14 bg-foreground/30" />
           <h1 className="font-serif text-4xl tracking-tight sm:text-5xl lg:text-6xl">
             {t("demo.title")}

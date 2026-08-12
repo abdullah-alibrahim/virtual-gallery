@@ -5,6 +5,7 @@ import { DEFAULT_FRAME } from "@/core/value-objects/frame-spec";
 import {
   dimensionsRoughlyMatch,
   estimateExhibitionDimensions,
+  fitSizeToAspect,
   pickBestCover,
   scoreCoverCandidate,
   suggestFrameFromArtwork,
@@ -19,6 +20,16 @@ describe("artwork-ai-assist", () => {
 
     const portrait = estimateExhibitionDimensions(900, 1600, 120);
     expect(portrait.height).toBeGreaterThan(portrait.width);
+  });
+
+  it("reshapes a forced square to the picture aspect", () => {
+    const landscape = fitSizeToAspect(1.2, 1.2, 1600 / 1014);
+    expect(landscape.width).toBeGreaterThan(landscape.height);
+    const portrait = fitSizeToAspect(1.2, 1.2, 759 / 1600);
+    expect(portrait.height).toBeGreaterThan(portrait.width);
+    const already = fitSizeToAspect(1.8, 1.4, 1.8 / 1.4);
+    expect(already.width).toBeCloseTo(1.8);
+    expect(already.height).toBeCloseTo(1.4);
   });
 
   it("detects when current dims already match the suggestion", () => {

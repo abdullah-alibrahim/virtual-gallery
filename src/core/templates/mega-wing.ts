@@ -20,16 +20,16 @@ export const megaWingTemplate: SceneTemplate = {
     scale: 1,
   },
   environment: {
-    exposure: 1.02,
+    exposure: 1.07,
     background: "#d8dde3",
     toneMapping: "aces",
   },
   lighting: {
-    ambient: { color: "#f4f6f8", intensity: 0.26 },
+    ambient: { color: "#f4f6f8", intensity: 0.24 },
     hemisphere: {
       skyColor: "#eef3f8",
       groundColor: "#b8c0c8",
-      intensity: 0.44,
+      intensity: 0.42,
     },
     // Warm morning sun through the west arched window — soft real shadows on stone.
     key: {
@@ -62,11 +62,13 @@ export const megaWingTemplate: SceneTemplate = {
     floor: "#d2c8b8",
     ceiling: "#eef0f2",
     trim: "#d5d8dc",
-    wallRoughness: 0.94,
-    floorRoughness: 0.36,
-    floorMetalness: 0.04,
+    wallRoughness: 0.92,
+    floorRoughness: 0.3,
+    floorMetalness: 0.06,
     ceilingRoughness: 0.88,
     floorStyle: "stone",
+    floorTextureId: "stone_tile",
+    wallTextureId: "plaster_smooth",
   },
   architecture: {
     skylight: {
@@ -102,9 +104,9 @@ export const megaWingTemplate: SceneTemplate = {
       center: [0, -1],
       // Rails near hang walls, clear of the central skylight well.
       spacingM: 12.5,
-      // Accent only — natural key/fill carry the room.
-      intensity: 0.38,
+      intensity: 0.42,
       maxLive: 6,
+      railColor: "#b8956a",
     },
     benches: [
       { position: [0, 0, 5], size: [3.0, 0.42, 0.5], color: "#c9a878", glb: true },
@@ -405,8 +407,8 @@ export const megaWingTemplate: SceneTemplate = {
   frameDefaults: createFrameSpec({
     style: "gallery",
     color: "#1a1c1e",
-    widthCm: 2.5,
-    matteCm: 5.5,
+    widthCm: 3.0,
+    matteCm: 6.5,
     matteColor: "#f6f6f5",
   }),
   preview: { imagePath: "/templates/mega-wing/preview.jpg" },

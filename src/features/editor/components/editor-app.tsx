@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
-import type { Artwork, Gallery, SceneTemplate } from "@/core/entities";
+import type { Artwork, Gallery, PlanId, SceneTemplate } from "@/core/entities";
 import { useIsDesktop } from "@/hooks/use-media-query";
+import { useT } from "@/i18n/locale-provider";
 import type { AssetListItem } from "@/infrastructure/firebase/assets-client";
 
 import { AssetsPanel } from "./assets-panel";
@@ -20,11 +22,19 @@ export function EditorApp({
   template,
   artworks,
   assets,
+  firstExhibition = false,
+  trialActive = false,
+  trialDaysLeft = 0,
+  plan = "pro",
 }: {
   gallery: Gallery;
   template: SceneTemplate;
   artworks: Artwork[];
   assets: AssetListItem[];
+  firstExhibition?: boolean;
+  trialActive?: boolean;
+  trialDaysLeft?: number;
+  plan?: PlanId;
 }) {
   const hydrate = useEditorStore((s) => s.hydrate);
   const setAssets = useEditorStore((s) => s.setAssets);
@@ -46,7 +56,16 @@ export function EditorApp({
 
   return (
     <EditorShell
-      toolbar={<EditorToolbar />}
+      toolbar={
+        <EditorToolbar
+          trialActive={trialActive}
+          trialDaysLeft={trialDaysLeft}
+          plan={plan}
+        />
+      }
+      notice={
+        firstExhibition ? <FirstExhibitionNotice /> : null
+      }
       hierarchy={<HierarchyPanel />}
       viewport={<EditorViewport />}
       inspector={<InspectorPanel />}
@@ -148,4 +167,44 @@ function useAutosave(galleryId: string) {
     setSaveState,
     markSaved,
   ]);
+}
+
+function FirstExhibitionNotice() {
+  const t = useT();
+  const [visible, setVisible] = useState(true);
+  if (!visible) return null;
+
+  return (
+    <div
+      className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b px-4 py-2.5 text-sm"
+      style={{
+        background: "var(--editor-panel)",
+        borderColor: "var(--editor-border)",
+        color: "var(--editor-foreground)",
+      }}
+    >
+      <p className="min-w-0 text-[color:var(--editor-muted)]">
+        <span className="text-[color:var(--editor-brass)]">
+          {t("editor.firstShowTitle")}
+        </span>
+        {" — "}
+        {t("editor.firstShowBody")}
+      </p>
+      <div className="flex shrink-0 items-center gap-3">
+        <Link
+          href="/dashboard"
+          className="text-xs text-[color:var(--editor-muted)] hover:text-[color:var(--editor-foreground)]"
+        >
+          {t("nav.dashboard")}
+        </Link>
+        <button
+          type="button"
+          className="text-xs tracking-wide text-[color:var(--editor-brass)] uppercase"
+          onClick={() => setVisible(false)}
+        >
+          {t("editor.firstShowDismiss")}
+        </button>
+      </div>
+    </div>
+  );
 }

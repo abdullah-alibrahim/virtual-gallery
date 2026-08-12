@@ -65,6 +65,17 @@ export interface SceneArtwork {
   readonly id: string;
   readonly title: string;
   readonly description: string;
+  /** Print catalogue — both languages on one plate when present. */
+  readonly bilingual?: {
+    readonly titleEn: string;
+    readonly titleAr: string;
+    readonly descriptionEn?: string;
+    readonly descriptionAr?: string;
+    readonly mediumEn?: string;
+    readonly mediumAr?: string;
+  };
+  /** Raster preview for print / PDF (thumb or original jpeg). */
+  readonly previewUrl?: string;
   readonly year?: number;
   readonly medium?: string;
   readonly category?: string;

@@ -14,13 +14,14 @@ import {
   ISMAIL_SLUG,
   type IsmailWork,
   ismailCatalog,
+  ismailMediumLocalized,
   ismailSectionOf,
   ismailTextureUrl,
   ismailWorkCopy,
 } from "@/core/samples/ismail-rifai";
 import { worldPositionOnWall } from "@/core/services/arrange-artworks";
+import { estimateExhibitionDimensions } from "@/core/services/artwork-ai-assist";
 import { megaWingTemplate, noirSalonTemplate } from "@/core/templates";
-import { createDimensions } from "@/core/value-objects/dimensions";
 import { createFrameSpec } from "@/core/value-objects/frame-spec";
 import { createMoney } from "@/core/value-objects/money";
 import { toSlug } from "@/core/value-objects/slug";
@@ -324,11 +325,14 @@ function hangIsmailWorksOnSlots(
     const catalog = ismailCatalog(work);
     const copy = ismailWorkCopy(work, arabic);
     const url = ismailTextureUrl(work.file);
-    const heightCm = catalog.heightCm;
-    const widthCm = catalog.widthCm;
+    const dimensions = estimateExhibitionDimensions(
+      work.widthPx,
+      work.heightPx,
+      Math.max(catalog.widthCm, catalog.heightCm),
+    );
     const scale = fitScale(
-      widthCm / 100,
-      heightCm / 100,
+      dimensions.width / 100,
+      dimensions.height / 100,
       slot.anchor.maxWidth,
       slot.anchor.maxHeight,
       0.88,
@@ -345,10 +349,18 @@ function hangIsmailWorksOnSlots(
       id: `ismail-${work.id}`,
       title: copy.title,
       description: copy.description,
+      bilingual: {
+        titleEn: work.title,
+        titleAr: work.titleAr,
+        descriptionEn: work.description,
+        descriptionAr: work.descriptionAr,
+        mediumEn: work.medium,
+        mediumAr: ismailMediumLocalized(work.medium, true),
+      },
       year: work.year,
       medium: copy.medium,
       category: copy.category,
-      dimensions: createDimensions(widthCm, heightCm, "cm"),
+      dimensions,
       ...(price ? { price } : {}),
       availability: catalog.availability,
       frame,

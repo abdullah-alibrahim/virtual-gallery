@@ -4,11 +4,11 @@
 
 import { FieldValue } from "firebase-admin/firestore";
 
-import type { Artwork, PlanId } from "@/core/entities";
+import type { Artwork } from "@/core/entities";
 import { ForbiddenError, NotFoundError } from "@/core/errors";
 import { assertCanAddArtwork } from "@/core/services/enforce-plan-limits";
-import { PLAN_LIMITS } from "@/core/services/plan-limits";
 import { getAdminDb } from "@/infrastructure/firebase/admin";
+import { reconcileWorkspacePlan } from "@/infrastructure/billing/pro-trial";
 
 export async function saveGalleryArtworks(input: {
   galleryId: string;
@@ -33,18 +33,13 @@ export async function saveGalleryArtworks(input: {
     throw new ForbiddenError("not a workspace member");
   }
 
-  const workspaceSnap = await db.collection("workspaces").doc(workspaceId).get();
-  const ws = workspaceSnap.data() ?? {};
-  const plan = (ws.plan ?? "free") as PlanId;
-  const fallback = PLAN_LIMITS[plan] ?? PLAN_LIMITS.free;
-  const limits = {
-    galleries: Number(ws.limits?.galleries ?? fallback.galleries),
-    artworksPerGallery: Number(
-      ws.limits?.artworksPerGallery ?? fallback.artworksPerGallery,
-    ),
-    storageBytes: Number(ws.limits?.storageBytes ?? fallback.storageBytes),
-    customDomain: Boolean(ws.limits?.customDomain ?? fallback.customDomain),
-    seats: Number(ws.limits?.seats ?? fallback.seats),
+  const reconciled = await reconcileWorkspacePlan(workspaceId);
+  const limits = reconciled?.limits ?? {
+    galleries: 3,
+    artworksPerGallery: 15,
+    storageBytes: 500 * 1024 * 1024,
+    customDomain: false,
+    seats: 1,
   };
 
   // Enforce ceiling only when growing past the plan max (edits that shrink are fine).

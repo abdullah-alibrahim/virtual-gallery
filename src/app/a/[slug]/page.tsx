@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { BrandLockup } from "@/components/shared/house-mark";
 import { EnquiryForm } from "@/components/shared/enquiry-form";
 import { SocialLinks } from "@/components/shared/social-links";
 import { LanguageSwitcher } from "@/i18n/language-switcher";
@@ -184,12 +185,10 @@ export default async function ArtistProfilePage({
         <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.11_0.01_70)] via-[oklch(0.11_0.01_70_/_0.45)] to-black/35" />
 
         <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 py-4 sm:px-6 lg:px-10">
-          <Link
-            href="/"
-            className="font-serif text-sm tracking-tight text-white/75 transition-colors hover:text-white"
-          >
-            {siteConfig.name}
-          </Link>
+          <BrandLockup
+            nameClassName="text-sm sm:text-base text-white/80"
+            className="text-white/80 hover:opacity-100"
+          />
           <div className="flex items-center gap-2">
             <LanguageSwitcher variant="ghost" />
             {canEditProfile ? (

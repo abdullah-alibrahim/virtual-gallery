@@ -100,6 +100,28 @@ export function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-vg-locale", locale);
 
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  if (host) {
+    const hostname = host.split(":")[0]?.toLowerCase() ?? "";
+    const siteHost = (() => {
+      try {
+        return new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000")
+          .hostname;
+      } catch {
+        return "localhost";
+      }
+    })();
+    if (
+      hostname &&
+      hostname !== siteHost &&
+      hostname !== "localhost" &&
+      hostname !== "127.0.0.1" &&
+      !hostname.endsWith(".localhost")
+    ) {
+      requestHeaders.set("x-vg-custom-host", hostname);
+    }
+  }
+
   const response = NextResponse.next({
     request: { headers: requestHeaders },
   });

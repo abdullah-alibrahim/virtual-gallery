@@ -5,8 +5,8 @@ import {
   MarketingFooter,
   MarketingNav,
 } from "@/components/shared/marketing-nav";
+import { BrandLockup } from "@/components/shared/house-mark";
 import { buttonVariants } from "@/components/ui/button";
-import { siteConfig } from "@/config/site";
 import {
   PLAN_COMPARISON_ROWS,
   PLAN_ORDER,
@@ -81,9 +81,7 @@ export default async function PricingPage() {
 
       <section className="relative mx-auto flex w-full max-w-7xl flex-col gap-16 px-4 py-12 pb-16 sm:px-8 sm:py-16 sm:pb-20">
         <div className="page-enter max-w-3xl space-y-5">
-          <p className="font-serif text-5xl leading-none tracking-tight text-foreground/25 sm:text-6xl">
-            {siteConfig.name}
-          </p>
+          <BrandLockup nameClassName="text-2xl sm:text-3xl" />
           <div aria-hidden className="rule-grow h-px w-14 bg-foreground/30" />
           <h1 className="font-serif text-5xl tracking-tight sm:text-6xl lg:text-7xl">
             {t("pricing.title")}
@@ -113,6 +111,7 @@ export default async function PricingPage() {
           {PLAN_ORDER.map((planId, index) => {
             const plan = planDefinition(planId);
             const { price, period } = formatPlanPrice(planId);
+            const yearly = formatPlanPrice(planId, "year");
             const delay =
               index === 1
                 ? "stagger-fade-1"
@@ -165,6 +164,13 @@ export default async function PricingPage() {
                       </span>
                     ) : null}
                   </p>
+                  {planId !== "free" ? (
+                    <p className="text-sm text-muted-foreground">
+                      {t("pricing.orYearly", {
+                        price: yearly.price,
+                      })}
+                    </p>
+                  ) : null}
                   <p className="text-base text-muted-foreground text-pretty">
                     {planBlurb}
                   </p>

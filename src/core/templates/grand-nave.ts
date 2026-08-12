@@ -55,10 +55,12 @@ export const grandNaveTemplate: SceneTemplate = {
     ceiling: "#f0f1f2",
     trim: "#d8d9dc",
     wallRoughness: 0.94,
-    floorRoughness: 0.52,
-    floorMetalness: 0.03,
+    floorRoughness: 0.4,
+    floorMetalness: 0.05,
     ceilingRoughness: 0.9,
     floorStyle: "plank",
+    floorTextureId: "wood_plank",
+    wallTextureId: "plaster_smooth",
   },
   architecture: {
     beams: {

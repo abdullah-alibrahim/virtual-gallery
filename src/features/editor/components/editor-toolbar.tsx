@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
+import { HouseMark } from "@/components/shared/house-mark";
 import { Button } from "@/components/ui/button";
 import { arrangeArtworks } from "@/core/services/arrange-artworks";
 import {
@@ -29,7 +30,15 @@ import { useUiStore } from "@/stores/ui-store";
 import { PublishControls } from "./publish-controls";
 import { useEditorStore } from "../store/editor-store";
 
-export function EditorToolbar() {
+export function EditorToolbar({
+  trialActive = false,
+  trialDaysLeft = 0,
+  plan = "pro",
+}: {
+  trialActive?: boolean;
+  trialDaysLeft?: number;
+  plan?: "free" | "pro" | "studio";
+} = {}) {
   const t = useT();
   const gallery = useEditorStore((s) => s.gallery);
   const template = useEditorStore((s) => s.template);
@@ -153,6 +162,10 @@ export function EditorToolbar() {
 
   return (
     <div className="flex w-full min-w-0 items-center gap-1.5 text-sm sm:gap-2">
+      <HouseMark
+        size={13}
+        className="ms-1 shrink-0 text-[color:var(--editor-brass)]"
+      />
       <div className="min-w-0 shrink">
         <p className="hidden text-[9px] tracking-[0.16em] text-[color:var(--editor-brass)]/70 uppercase sm:block">
           {t("editor.studio")}
@@ -222,6 +235,17 @@ export function EditorToolbar() {
       </button>
 
       <div className="flex-1" />
+
+      {trialActive || plan === "free" ? (
+        <Link
+          href="/settings/billing"
+          className="hidden shrink-0 items-center px-2 text-[10px] tracking-[0.14em] text-[color:var(--editor-brass)] uppercase sm:inline-flex"
+        >
+          {trialActive
+            ? t("billing.trialChip", { days: trialDaysLeft })
+            : t("billing.keepPro")}
+        </Link>
+      ) : null}
 
       <button
         type="button"

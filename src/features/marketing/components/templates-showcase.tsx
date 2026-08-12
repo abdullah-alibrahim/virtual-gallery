@@ -3,18 +3,20 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { buttonVariants } from "@/components/ui/button";
+import { BrandLockup } from "@/components/shared/house-mark";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import {
   TEMPLATE_CATALOGUE,
   getTemplateById,
   getTemplateSwatches,
 } from "@/core/templates";
-import { siteConfig } from "@/config/site";
 import { useT } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 import { RoomStill } from "@/components/shared/room-still";
+
+import { UseThisRoomButton } from "@/features/galleries/components/use-this-room-button";
 
 import { MarketingRoomPanel } from "./marketing-room-panel";
 
@@ -45,9 +47,7 @@ export function TemplatesShowcase() {
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-16 px-4 py-12 pb-24 sm:px-8 sm:py-16 sm:pb-28">
       <div className="page-enter grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
         <div className="flex max-w-2xl flex-col gap-5">
-          <p className="font-serif text-5xl leading-none tracking-tight text-foreground/25 sm:text-6xl">
-            {siteConfig.name}
-          </p>
+          <BrandLockup nameClassName="text-2xl sm:text-3xl" />
           <div aria-hidden className="rule-grow h-px w-14 bg-foreground/30" />
           <h1 className="font-serif text-5xl tracking-tight sm:text-6xl lg:text-7xl">
             {t("templates.title")}
@@ -157,23 +157,19 @@ export function TemplatesShowcase() {
                 {t("templates.tryWalkthrough")}
               </Link>
             ) : null}
-            <Link
-              href="/sign-up"
-              className={cn(
-                buttonVariants({
-                  variant:
-                    featured.id === "modern-white" ||
-                    featured.id === "mega-wing" ||
-                    featured.id === "harbor-pavilion" ||
-                    featured.id === "grand-nave"
-                      ? "secondary"
-                      : "primary",
-                  size: "sm",
-                }),
-              )}
-            >
-              {t("templates.useThisRoom")}
-            </Link>
+            <UseThisRoomButton
+              templateId={featured.id}
+              title={featured.name}
+              size="sm"
+              variant={
+                featured.id === "modern-white" ||
+                featured.id === "mega-wing" ||
+                featured.id === "harbor-pavilion" ||
+                featured.id === "grand-nave"
+                  ? "secondary"
+                  : "primary"
+              }
+            />
           </div>
         </div>
       </div>

@@ -51,14 +51,23 @@ export function OnboardingForm({
 
       const body = (await response.json().catch(() => null)) as {
         error?: string;
+        galleryId?: string | null;
       } | null;
 
       if (!response.ok) {
         throw new Error(body?.error ?? t("onboarding.couldNotSave"));
       }
 
-      toast.success(t("onboarding.welcomeIn"));
-      router.replace("/dashboard");
+      toast.success(
+        body?.galleryId
+          ? t("onboarding.welcomeInFirst")
+          : t("onboarding.welcomeIn"),
+      );
+      router.replace(
+        body?.galleryId
+          ? `/galleries/${body.galleryId}/edit?first=1`
+          : "/dashboard",
+      );
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("onboarding.couldNotSave"));

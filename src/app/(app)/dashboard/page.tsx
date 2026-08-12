@@ -7,6 +7,7 @@ import { AppPage } from "@/components/shared/app-page";
 import { PageHeader } from "@/components/shared/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { PlanUsageBanner } from "@/features/billing/components/plan-usage-banner";
+import { FirstShowChecklist } from "@/features/galleries/components/first-show-checklist";
 import { GalleryList } from "@/features/galleries/components/gallery-list";
 import { getAuthContext } from "@/infrastructure/firebase/auth-context";
 import { listWorkspaceGalleries } from "@/infrastructure/galleries/list-galleries";
@@ -64,7 +65,9 @@ export default async function DashboardPage() {
           plan={plan}
           galleriesUsed={galleriesUsed}
           galleriesLimit={galleriesLimit}
+          trialDaysLeft={usage?.trialDaysLeft ?? 0}
         />
+        <FirstShowChecklist galleries={galleries} />
         <GalleryList galleries={galleries} />
       </div>
     </AppPage>

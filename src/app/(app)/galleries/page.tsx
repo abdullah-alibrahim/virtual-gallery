@@ -48,7 +48,12 @@ export default async function GalleriesPage() {
         }
       />
       <div className="flex flex-col gap-6 stagger-fade stagger-fade-1">
-        <GalleryLimitBanner used={used} limit={limit} plan={plan} />
+        <GalleryLimitBanner
+          used={used}
+          limit={limit}
+          plan={plan}
+          trialDaysLeft={usage?.trialDaysLeft ?? 0}
+        />
         <GalleryList galleries={galleries} atCap={atCap} />
       </div>
     </AppPage>

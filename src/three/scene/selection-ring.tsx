@@ -1,6 +1,7 @@
 "use client";
 
 import type { SceneArtwork } from "@/core/entities";
+import { fitSizeToAspect } from "@/core/services/artwork-ai-assist";
 import { toMetres } from "@/core/value-objects/dimensions";
 
 /**
@@ -14,8 +15,13 @@ export function SelectionRing({
   locked?: boolean;
 }) {
   const metres = toMetres(artwork.dimensions);
-  const width = metres.width * artwork.placement.scale + 0.1;
-  const height = metres.height * artwork.placement.scale + 0.1;
+  const hung = fitSizeToAspect(
+    metres.width * artwork.placement.scale,
+    metres.height * artwork.placement.scale,
+    artwork.meta.aspectRatio,
+  );
+  const width = hung.width + 0.1;
+  const height = hung.height + 0.1;
   const [px, py, pz] = artwork.placement.position;
   const [rx, ry, rz] = artwork.placement.rotation;
   const color = locked ? "#8a8074" : "#c4a574";

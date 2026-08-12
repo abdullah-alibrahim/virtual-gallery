@@ -1,34 +1,19 @@
 import type { SceneArtwork, SceneTemplate } from "@/core/entities";
+import { estimateExhibitionDimensions } from "@/core/services/artwork-ai-assist";
 import { createDimensions } from "@/core/value-objects/dimensions";
 import { createFrameSpec } from "@/core/value-objects/frame-spec";
 
-const DEMO_TEXTURES = [
-  "/demo/artworks/01.jpg",
-  "/demo/artworks/02.jpg",
-  "/demo/artworks/03.jpg",
-  "/demo/artworks/04.jpg",
-  "/demo/artworks/05.jpg",
-  "/demo/artworks/06.jpg",
-  "/demo/artworks/07.jpg",
-  "/demo/artworks/08.jpg",
-  "/demo/artworks/09.jpg",
-] as const;
+import {
+  DEMO_ARTWORK_PIXELS,
+  demoArtworkUrl,
+} from "./demo-artwork-pixels";
 
-const ASPECTS = [
-  [180, 140],
-  [160, 200],
-  [190, 145],
-  [150, 150],
-  [170, 120],
-  [130, 185],
-  [145, 175],
-  [165, 125],
-  [155, 155],
-] as const;
+/** Long-edge centimetres — size variety without inventing a fake aspect. */
+const LONG_EDGES_CM = [148, 128, 156, 132, 142, 138, 160, 150, 136] as const;
 
 /**
  * Hang demo textures on a template’s preferred anchors for marketing previews.
- * Pure — no React / WebGL. Prefer north-wall preferred anchors first.
+ * Frame follows the JPEG’s pixel aspect — never a forced square or stretch.
  */
 export function buildMarketingPreviewArtworks(
   template: SceneTemplate,
@@ -46,13 +31,23 @@ export function buildMarketingPreviewArtworks(
   const preset = template.lighting.presets[0];
 
   return slots.map((slot, index) => {
-    const aspect = ASPECTS[index % ASPECTS.length]!;
-    const url = DEMO_TEXTURES[index % DEMO_TEXTURES.length]!;
+    const file = DEMO_ARTWORK_PIXELS[index % DEMO_ARTWORK_PIXELS.length]!;
+    const url = demoArtworkUrl(file.file);
+    const long = LONG_EDGES_CM[index % LONG_EDGES_CM.length]!;
+    const suggested = estimateExhibitionDimensions(
+      file.widthPx,
+      file.heightPx,
+      long,
+    );
     const maxW = slot.anchor.maxWidth * 100;
     const maxH = slot.anchor.maxHeight * 100;
-    const scale = Math.min(1, (maxW * 0.9) / aspect[0], (maxH * 0.9) / aspect[1]);
-    const w = Math.round(aspect[0] * scale);
-    const h = Math.round(aspect[1] * scale);
+    const scale = Math.min(
+      1,
+      (maxW * 0.9) / suggested.width,
+      (maxH * 0.9) / suggested.height,
+    );
+    const w = Math.round(suggested.width * scale);
+    const h = Math.round(suggested.height * scale);
     const yaw = Math.atan2(slot.wall.normal[0], slot.wall.normal[2]);
     const position: [number, number, number] = [
       slot.wall.origin[0] + slot.anchor.position[0],
@@ -86,7 +81,7 @@ export function buildMarketingPreviewArtworks(
         lod2: url,
       },
       meta: {
-        aspectRatio: w / h,
+        aspectRatio: file.widthPx / file.heightPx,
         blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
       },
     };

@@ -20,6 +20,7 @@ import {
   toSlug,
 } from "@/core/value-objects/slug";
 import { getAdminDb } from "@/infrastructure/firebase/admin";
+import { reconcileWorkspacePlan } from "@/infrastructure/billing/pro-trial";
 
 export interface CreateGalleryInput {
   readonly uid: string;
@@ -47,13 +48,16 @@ export async function createGalleryDocument(input: CreateGalleryInput) {
   }
 
   const data = workspaceSnap.data()!;
-  const plan = (data.plan ?? "free") as "free" | "pro" | "studio";
+  const reconciled = await reconcileWorkspacePlan(input.workspaceId);
+  const plan = reconciled?.plan ?? ((data.plan ?? "free") as "free" | "pro" | "studio");
   if (!canUseTemplateTier(plan, template.tier)) {
     throw new ForbiddenError("This template requires a Pro plan");
   }
 
+  const usage = reconciled?.usage ?? data.usage;
+  const limits = reconciled?.limits ?? data.limits;
   try {
-    assertCanCreateGallery(data.usage, data.limits);
+    assertCanCreateGallery(usage, limits);
   } catch (error) {
     if (error instanceof PlanLimitError) throw error;
     throw error;

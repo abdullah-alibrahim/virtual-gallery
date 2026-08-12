@@ -24,6 +24,23 @@ describe("plans catalogue", () => {
     expect(formatPlanPrice("free")).toEqual({ price: "$0", period: "" });
     expect(formatPlanPrice("pro")).toEqual({ price: "$29", period: "/mo" });
     expect(formatPlanPrice("studio")).toEqual({ price: "$99", period: "/mo" });
+    expect(formatPlanPrice("pro", "year")).toEqual({
+      price: "$290",
+      period: "/yr",
+    });
+    expect(formatPlanPrice("studio", "year")).toEqual({
+      price: "$990",
+      period: "/yr",
+    });
+  });
+
+  it("gives two months free on yearly Pro and Studio", () => {
+    expect(planDefinition("pro").priceYearlyUsd).toBe(
+      planDefinition("pro").priceMonthlyUsd * 10,
+    );
+    expect(planDefinition("studio").priceYearlyUsd).toBe(
+      planDefinition("studio").priceMonthlyUsd * 10,
+    );
   });
 
   it("exposes a comparison matrix", () => {

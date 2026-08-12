@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { siteConfig } from "@/config/site";
+import { BrandLockup } from "@/components/shared/house-mark";
 import { LanguageSwitcher } from "@/i18n/language-switcher";
 import { getTranslator } from "@/i18n/server";
 
@@ -25,12 +25,7 @@ export default async function AuthLayout({
       />
 
       <header className="relative z-10 flex w-full items-center justify-between border-b border-border/70 px-4 py-4 sm:px-6">
-        <Link
-          href="/"
-          className="font-serif text-xl tracking-tight hover:opacity-80"
-        >
-          {siteConfig.name}
-        </Link>
+        <BrandLockup nameClassName="text-xl" />
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
           <Link

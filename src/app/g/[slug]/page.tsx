@@ -5,6 +5,9 @@ import { siteConfig } from "@/config/site";
 import { NotFoundError } from "@/core/errors";
 import { GalleryViewer } from "@/features/viewer/components/gallery-viewer";
 import { loadPublishedManifestBySlug } from "@/infrastructure/publish/load-published-manifest";
+import { readLatestPointer } from "@/infrastructure/publish/manifest-storage";
+import { getAdminDb } from "@/infrastructure/firebase/admin";
+import { loadWorkspaceUsage } from "@/infrastructure/workspaces/load-workspace-usage";
 import { buildGalleryJsonLd } from "@/lib/seo/gallery-json-ld";
 
 export const dynamic = "force-dynamic";
@@ -75,6 +78,7 @@ export default async function PublicGalleryPage({
   }
 
   const jsonLd = buildGalleryJsonLd(manifest);
+  const brandMark = await shouldShowFreeBrandMark(slug);
 
   return (
     <>
@@ -85,7 +89,26 @@ export default async function PublicGalleryPage({
       <GalleryViewer
         manifest={manifest}
         initialMode={view === "list" ? "list" : "walk"}
+        brandMark={brandMark}
       />
     </>
   );
+}
+
+async function shouldShowFreeBrandMark(slug: string): Promise<boolean> {
+  try {
+    const pointer = await readLatestPointer(slug);
+    if (!pointer) return true;
+    const gallery = await getAdminDb()
+      .collection("galleries")
+      .doc(pointer.galleryId)
+      .get();
+    const workspaceId = String(gallery.data()?.workspaceId ?? "");
+    if (!workspaceId) return true;
+    const usage = await loadWorkspaceUsage(workspaceId);
+    if (!usage) return true;
+    return usage.plan === "free" && !usage.trialActive;
+  } catch {
+    return true;
+  }
 }

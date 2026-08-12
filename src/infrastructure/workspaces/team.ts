@@ -17,8 +17,8 @@ import {
   assertCanInviteMember,
   limitsForPlan,
 } from "@/core/services/enforce-plan-limits";
-import { PLAN_LIMITS } from "@/core/services/plan-limits";
 import { getAdminAuth, getAdminDb } from "@/infrastructure/firebase/admin";
+import { reconcileWorkspacePlan } from "@/infrastructure/billing/pro-trial";
 
 const INVITE_ROLES: readonly Exclude<MemberRole, "owner">[] = [
   "admin",
@@ -135,11 +135,11 @@ export async function inviteWorkspaceMember(input: {
   }
 
   const data = workspaceSnap.data()!;
-  const plan = (data.plan ?? "free") as keyof typeof PLAN_LIMITS;
-  const fallback = PLAN_LIMITS[plan] ?? PLAN_LIMITS.free;
-  const limits = {
+  const reconciled = await reconcileWorkspacePlan(input.workspaceId);
+  const plan = reconciled?.plan ?? "free";
+  const limits = reconciled?.limits ?? {
     ...limitsForPlan(plan),
-    seats: Number(data.limits?.seats ?? fallback.seats),
+    seats: Number(data.limits?.seats ?? limitsForPlan(plan).seats),
   };
 
   const [membersSnap, invitesSnap] = await Promise.all([

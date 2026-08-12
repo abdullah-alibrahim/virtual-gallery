@@ -56,10 +56,51 @@ export const nightCubeTemplate: SceneTemplate = {
     ceiling: "#0a0e12",
     trim: "#1c2430",
     wallRoughness: 0.88,
-    floorRoughness: 0.42,
-    floorMetalness: 0.18,
+    floorRoughness: 0.3,
+    floorMetalness: 0.16,
     ceilingRoughness: 1,
     floorStyle: "stone",
+    floorTextureId: "stone_tile",
+    wallTextureId: "plaster_smooth",
+  },
+  architecture: {
+    trackLights: {
+      axis: "z",
+      count: 2,
+      spotsPerRail: 4,
+      lengthM: 6.4,
+      center: [0, 0],
+      spacingM: 4.4,
+      intensity: 0.52,
+      maxLive: 4,
+      railColor: "#8ab0e0",
+    },
+    plinths: [{ position: [2.15, 0, -1.85], size: [0.44, 0.9, 0.44] }],
+    benches: [
+      {
+        position: [0, 0, 0.85],
+        size: [1.7, 0.4, 0.46],
+        color: "#1c2430",
+        glb: true,
+      },
+    ],
+    glbProps: [
+      { model: "bust", position: [2.15, 0.9, -1.85], scale: 1.0 },
+      { model: "plant", position: [3.15, 0, 3.15], scale: 1.12, yaw: -0.4 },
+      { model: "plant", position: [-3.15, 0, 3.15], scale: 1.1, yaw: 0.75 },
+      { model: "vase", position: [-2.25, 0, -2.35], scale: 0.82 },
+    ],
+    signs: [
+      {
+        text: "NIGHT CUBE",
+        subtitle: "Intimate · indigo",
+        position: [0, 2.65, -3.92],
+        yaw: 0,
+        width: 3.6,
+        height: 0.62,
+        style: "wall",
+      },
+    ],
   },
   walls: [
     {

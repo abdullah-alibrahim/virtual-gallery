@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { BrandLockup } from "@/components/shared/house-mark";
 import { OnboardingForm } from "@/features/auth/components/onboarding-form";
 import { OnboardingRoomPanel } from "@/features/marketing/components/onboarding-room-panel";
-import { siteConfig } from "@/config/site";
 import { LanguageSwitcher } from "@/i18n/language-switcher";
 import { getAuthContext } from "@/infrastructure/firebase/auth-context";
 import { getAdminDb } from "@/infrastructure/firebase/admin";
@@ -41,9 +40,7 @@ export default async function OnboardingPage() {
       </div>
       <OnboardingRoomPanel />
       <header className="relative z-10 flex w-full items-center justify-between gap-4 px-4 py-5 pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-8">
-        <Link href="/" className="font-serif text-xl tracking-tight sm:text-2xl">
-          {siteConfig.name}
-        </Link>
+        <BrandLockup nameClassName="text-xl sm:text-2xl" />
         <LanguageSwitcher />
       </header>
       <main className="relative z-10 flex w-full flex-1 items-center justify-center px-4 py-16 sm:px-8 lg:justify-start lg:ps-16 xl:ps-24">

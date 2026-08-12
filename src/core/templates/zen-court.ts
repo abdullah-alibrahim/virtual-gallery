@@ -22,7 +22,7 @@ export const zenCourtTemplate: SceneTemplate = {
     toneMapping: "aces",
   },
   lighting: {
-    ambient: { color: "#f8f6f2", intensity: 0.5 },
+    ambient: { color: "#f8f6f2", intensity: 0.28 },
     hemisphere: {
       skyColor: "#ffffff",
       groundColor: "#d8d4cc",
@@ -54,10 +54,56 @@ export const zenCourtTemplate: SceneTemplate = {
     ceiling: "#faf8f4",
     trim: "#e0dbd2",
     wallRoughness: 0.96,
-    floorRoughness: 0.68,
-    floorMetalness: 0.015,
+    floorRoughness: 0.42,
+    floorMetalness: 0.03,
     ceilingRoughness: 0.99,
     floorStyle: "stone",
+    floorTextureId: "stone_tile",
+    wallTextureId: "plaster_smooth",
+  },
+  architecture: {
+    skylight: {
+      width: 2.6,
+      depth: 4.2,
+      gridX: 1,
+      gridZ: 3,
+      recessM: 0.18,
+    },
+    trackLights: {
+      axis: "z",
+      count: 2,
+      spotsPerRail: 4,
+      lengthM: 8.5,
+      center: [0, 0],
+      spacingM: 4.6,
+      intensity: 0.28,
+      maxLive: 4,
+      railColor: "#c8c0b4",
+    },
+    benches: [
+      {
+        position: [0, 0, 1.65],
+        size: [1.85, 0.4, 0.46],
+        color: "#cfc8bc",
+        glb: true,
+      },
+    ],
+    glbProps: [
+      { model: "vase", position: [2.55, 0, -3.55], scale: 0.88 },
+      { model: "plant", position: [3.55, 0, 3.85], scale: 1.12, yaw: 0.4 },
+      { model: "plant", position: [-3.55, 0, 3.85], scale: 1.08, yaw: -0.55 },
+    ],
+    signs: [
+      {
+        text: "ZEN COURT",
+        subtitle: "Paper-white hush",
+        position: [0, 2.55, -5.42],
+        yaw: 0,
+        width: 3.4,
+        height: 0.62,
+        style: "wall",
+      },
+    ],
   },
   walls: fourWallRoom({
     width: 8.5,

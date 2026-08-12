@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { HouseMark } from "@/components/shared/house-mark";
 import { APP_NAV } from "@/components/shared/app-nav";
 import { useT } from "@/i18n/locale-provider";
 import { cn } from "@/lib/utils";
@@ -35,12 +36,21 @@ export function AppSidebar({
         <Link
           href="/dashboard"
           className={cn(
-            "truncate font-serif text-xl tracking-tight",
-            collapsed && "text-sm",
+            "flex min-w-0 items-center gap-2.5 truncate",
+            collapsed && "justify-center",
           )}
           title={studioName}
         >
-          {collapsed ? "VG" : studioName}
+          <span className="text-[color:var(--luxury-brass)]">
+            <HouseMark size={collapsed ? 16 : 15} />
+          </span>
+          {collapsed ? (
+            <span className="sr-only">{studioName}</span>
+          ) : (
+            <span className="truncate font-serif text-xl tracking-tight">
+              {studioName}
+            </span>
+          )}
         </Link>
       </div>
 
@@ -55,10 +65,10 @@ export function AppSidebar({
               href={href}
               title={label}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors",
+                "flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm transition-colors",
                 active
-                  ? "border border-border bg-accent text-accent-foreground"
-                  : "border border-transparent text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+                  ? "border-s-2 border-s-[color:var(--luxury-brass)] bg-accent text-accent-foreground"
+                  : "border-s-2 border-s-transparent text-muted-foreground hover:bg-accent/60 hover:text-foreground",
                 collapsed && "justify-center px-2",
               )}
             >
@@ -72,10 +82,10 @@ export function AppSidebar({
             href="/admin"
             title={t("common.admin")}
             className={cn(
-              "mt-2 flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors",
+              "mt-2 flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm transition-colors",
               pathname.startsWith("/admin")
-                ? "border border-border bg-accent text-accent-foreground"
-                : "border border-transparent text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+                ? "border-s-2 border-s-[color:var(--luxury-brass)] bg-accent text-accent-foreground"
+                : "border-s-2 border-s-transparent text-muted-foreground hover:bg-accent/60 hover:text-foreground",
               collapsed && "justify-center px-2",
             )}
           >

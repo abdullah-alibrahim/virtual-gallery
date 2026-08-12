@@ -13,6 +13,8 @@ export interface PlanDefinition {
   readonly id: PlanId;
   readonly label: string;
   readonly priceMonthlyUsd: number;
+  /** Ten months billed yearly (two months free). Zero on Free. */
+  readonly priceYearlyUsd: number;
   readonly blurb: string;
   readonly featured: boolean;
   readonly limits: WorkspaceLimits & {
@@ -28,6 +30,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     id: "free",
     label: "Free",
     priceMonthlyUsd: 0,
+    priceYearlyUsd: 0,
     blurb: "Publish your first walkable show.",
     featured: false,
     limits: PLAN_LIMITS.free,
@@ -44,6 +47,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     id: "pro",
     label: "Pro",
     priceMonthlyUsd: 29,
+    priceYearlyUsd: 290,
     blurb: "More rooms, Pro templates, deeper analytics.",
     featured: true,
     limits: PLAN_LIMITS.pro,
@@ -60,6 +64,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     id: "studio",
     label: "Studio",
     priceMonthlyUsd: 99,
+    priceYearlyUsd: 990,
     blurb: "Serious volume for working artists and small teams.",
     featured: false,
     limits: PLAN_LIMITS.studio,
@@ -80,13 +85,21 @@ export function planDefinition(plan: PlanId): PlanDefinition {
   return PLANS[plan] ?? PLANS.free;
 }
 
-export function formatPlanPrice(plan: PlanId): {
+export type BillingInterval = "month" | "year";
+
+export function formatPlanPrice(
+  plan: PlanId,
+  interval: BillingInterval = "month",
+): {
   price: string;
   period: string;
 } {
-  const usd = planDefinition(plan).priceMonthlyUsd;
-  if (usd <= 0) return { price: "$0", period: "" };
-  return { price: `$${usd}`, period: "/mo" };
+  const def = planDefinition(plan);
+  if (def.priceMonthlyUsd <= 0) return { price: "$0", period: "" };
+  if (interval === "year") {
+    return { price: `$${def.priceYearlyUsd}`, period: "/yr" };
+  }
+  return { price: `$${def.priceMonthlyUsd}`, period: "/mo" };
 }
 
 /** Comparison rows for the pricing table. */

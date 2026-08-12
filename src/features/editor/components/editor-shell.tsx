@@ -11,12 +11,14 @@ import { useUiStore } from "@/stores/ui-store";
  */
 export function EditorShell({
   toolbar,
+  notice,
   hierarchy,
   viewport,
   inspector,
   assets,
 }: {
   toolbar: ReactNode;
+  notice?: ReactNode;
   hierarchy: ReactNode;
   viewport: ReactNode;
   inspector: ReactNode;
@@ -39,6 +41,8 @@ export function EditorShell({
       >
         {toolbar}
       </div>
+
+      {notice}
 
       <div className="flex min-h-0 min-w-0 flex-1">
         <aside

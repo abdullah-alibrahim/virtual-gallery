@@ -74,13 +74,15 @@
   },
   "landing": {
     "eyebrow": "للفنانين والأتولييه",
-    "headline": "معارض تدخلها سيراً",
+    "viewingKicker": "مشاهدة خاصة",
+    "headline": "قاعة تدخلها. معرض يبقى.",
     "heroBody": "علّق بمقياس المتحف. انشر رابطاً واحداً. يدخل الجامعون قاعة هادئة — لا شريطاً لا نهائياً.",
     "explorePro": "جرّب قاعة برو",
     "start": "ابدأ",
     "walkEyebrow": "تجوّل قبل أن تعلّق",
     "walkTitle": "ادخل معرضاً مكتملاً",
     "walkBody": "قاعة برو، جناح ساحلي، أو غرفة بيضاء هادئة — نفس التجوّل بشخص أول الذي سيأخذه زوّارك.",
+    "walkMaison": "صالون ميزون",
     "walkPro": "قاعة برو",
     "walkHarbor": "المرفأ",
     "walkQuiet": "غرف هادئة",
@@ -163,7 +165,8 @@
     "footer": "جميع الخطط تشمل نشراً قابلاً للتجوّل ومعاينة بشخص أول وأصولاً خاصة. رقِّ أو ألغِ في أي وقت من الفوترة.",
     "analyticsRetention": "احتفاظ التحليلات",
     "freeRooms": "غرف مجانية",
-    "freePlusPro": "مجاني + برو"
+    "freePlusPro": "مجاني + برو",
+    "orYearly": "أو {price} سنوياً (شهرين مجاناً)"
   },
   "demo": {
     "title": "جرّب قبل تسجيل الدخول",
@@ -260,6 +263,7 @@
     "publicPageHint": "يصبح صفحتك العامة كفنان. يمكنك تغييرها لاحقاً.",
     "couldNotSave": "تعذّر الحفظ",
     "welcomeIn": "أنت جاهز — أهلاً بك.",
+    "welcomeInFirst": "معرضك الأول جاهز — استبدل العينات ثم انشر.",
     "slugInvalid": "اختر رابطاً بين 3–48 حرفاً باستخدام حروف وأرقام وشرطات."
   },
   "dashboard": {
@@ -275,7 +279,15 @@
     "draft": "مسودة",
     "published": "منشور",
     "unpublished": "غير منشور",
-    "archived": "مؤرشف"
+    "archived": "مؤرشف",
+    "checklistTitle": "عرضك الأول",
+    "checklistHang": "علّق الأعمال",
+    "checklistHangBody": "لوحات عيّنة على الجدار. استبدلها بأعمالك من الأصول، أو أبقها ريثما تتعرّف على القاعة.",
+    "checklistPublish": "انشر",
+    "checklistPublishBody": "ضع العرض على رابط عام يمكن التجوّل فيه.",
+    "checklistShare": "شارك الرابط",
+    "checklistShareBody": "بعد النشر، أرسل للجامعين {url}",
+    "checklistOpenEditor": "فتح المحرّر"
   },
   "galleries": {
     "title": "المعارض",
@@ -372,6 +384,25 @@
     "allowEnquiries": "السماح باستفسارات الجامعين",
     "saveProfile": "حفظ الملف"
   },
+  "domain": {
+    "title": "نطاق خاص",
+    "body": "وجّه اسماً من خطة ستوديو إلى صفحتك العامة. أضف CNAME ثم تحقّق.",
+    "hostLabel": "اسم النطاق",
+    "save": "حفظ النطاق",
+    "verify": "تحقق من DNS",
+    "remove": "إزالة",
+    "saved": "تم حفظ النطاق — أضف CNAME ثم تحقّق",
+    "verified": "تم التحقق من النطاق",
+    "removed": "تم إزالة النطاق",
+    "updateFailed": "تعذّر تحديث النطاق",
+    "dnsTitle": "سجل CNAME",
+    "dnsBody": "في DNS: CNAME {host} → {target}. استخدم نطاقاً فرعياً (gallery.yourstudio.com) وليس الجذر.",
+    "vercelHint": "ثم أضف نفس الاسم في Vercel → Project → Settings → Domains لتعمل HTTPS.",
+    "liveTitle": "مباشر",
+    "liveBody": "يمكن للجامعين فتح https://{host}/ لاستوديوك العام.",
+    "studioOnly": "خطة ستوديو",
+    "studioOnlyBody": "النطاق الخاص مضمّن في ستوديو. رقِّ الخطة لربط اسمك."
+  },
   "billing": {
     "upgrade": "ترقية",
     "current": "الخطة الحالية",
@@ -413,7 +444,17 @@
     "changePlanFailed": "تعذّر تغيير الخطة",
     "mockUpgraded": "تمت الترقية إلى {plan} (فوترة تجريبية)",
     "mockDowngraded": "تم التبديل إلى مجاني (فوترة تجريبية)",
-    "galleriesLabel": "المعارض"
+    "galleriesLabel": "المعارض",
+    "trialLabel": "تجربة برو",
+    "trialDaysLeft": "باقي {days} يوماً على برو",
+    "trialChip": "تجربة برو · {days}ي",
+    "keepPro": "أبقِ برو",
+    "onTrial": "في تجربة برو ({days} أيام متبقية)",
+    "billingInterval": "فترة الفوترة",
+    "payMonthly": "شهري",
+    "payYearly": "سنوي",
+    "monthlyHint": "فوترة شهرية. إلغاء في أي وقت.",
+    "yearlyHint": "شهرين مجاناً — برو 290$ سنوياً، ستوديو 990$ سنوياً."
   },
   "assets": {
     "title": "الأصول",
@@ -553,6 +594,9 @@
     "light": "الضوء",
     "roomLight": "القاعة والإضاءة",
     "hangHint": "علّق لوحة من الأصول، ثم اسحبها على الجدار لوضعها.",
+    "firstShowTitle": "معرضك الأول",
+    "firstShowBody": "لوحات عيّنة على الجدران كي لا تبدو القاعة فارغة. استبدلها من الأصول، ثم انشر وشارك الرابط.",
+    "firstShowDismiss": "حسناً",
     "selectHint": "اختر لوحة لتحرير الموضع والإطار والضوء الموضعي.",
     "innerWorld": "العالم الداخلي",
     "innerWorldType": "النوع",
@@ -630,6 +674,7 @@
   },
   "walk": {
     "exhibition": "معرض",
+    "madeWith": "Virtual Gallery",
     "privateLink": "رابط خاص",
     "emptyRoom": "قاعة فارغة",
     "work": "عمل",
@@ -757,6 +802,8 @@
     "backToWalk": "العودة إلى التجوّل",
     "printSavePdf": "طباعة / حفظ PDF",
     "exhibitionCatalogue": "كتالوج المعرض",
+    "cataloguePlate": "لوحة {n}",
+    "catalogueWorks": "{count} أعمال",
     "printedOn": "طُبع في {date} · {site}",
     "dimensions": "القياسات",
     "detailsFor": "تفاصيل {title}",

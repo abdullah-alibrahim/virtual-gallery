@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { planDefinition } from "@/core/billing/plans";
+import { planDefinition, type BillingInterval } from "@/core/billing/plans";
 import type { PlanId } from "@/core/entities";
 import { useT } from "@/i18n";
 import { formatStorageBytes } from "@/lib/format";
@@ -49,6 +49,9 @@ export function BillingPanel({
   mockBilling,
   usage,
   limits,
+  trialActive = false,
+  trialDaysLeft = 0,
+  yearlyStripeConfigured = false,
 }: {
   plan: PlanId;
   stripeConfigured: boolean;
@@ -64,6 +67,9 @@ export function BillingPanel({
     storageBytes: number;
     seats: number;
   };
+  trialActive?: boolean;
+  trialDaysLeft?: number;
+  yearlyStripeConfigured?: boolean;
 }) {
   const router = useRouter();
   const search = useSearchParams();
@@ -71,8 +77,10 @@ export function BillingPanel({
   const [busy, setBusy] = useState<"pro" | "studio" | "free" | "portal" | null>(
     null,
   );
+  const [interval, setInterval] = useState<BillingInterval>("month");
   const checkout = search.get("checkout");
   const def = planDefinition(plan);
+  const yearlyEnabled = mockBilling || yearlyStripeConfigured;
 
   useEffect(() => {
     if (checkout !== "success") return;
@@ -88,7 +96,7 @@ export function BillingPanel({
       const response = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: next }),
+        body: JSON.stringify({ plan: next, interval }),
       });
       const body = (await response.json().catch(() => null)) as {
         error?: string;
@@ -194,7 +202,14 @@ export function BillingPanel({
         <p className="text-xs tracking-[0.16em] text-muted-foreground uppercase">
           {t("billing.current")}
         </p>
-        <p className="mt-1 font-serif text-3xl tracking-tight">{def.label}</p>
+        <p className="mt-1 font-serif text-3xl tracking-tight">
+          {trialActive ? t("billing.trialLabel") : def.label}
+        </p>
+        {trialActive ? (
+          <p className="mt-2 text-sm text-muted-foreground">
+            {t("billing.trialDaysLeft", { days: trialDaysLeft })}
+          </p>
+        ) : null}
         <p className="mt-2 text-sm text-muted-foreground">
           {t("billing.planSummary", {
             galleries: limits.galleries,
@@ -229,8 +244,47 @@ export function BillingPanel({
         </p>
       </div>
 
+      <div className="flex flex-col gap-3">
+        {plan === "free" || trialActive ? (
+          <div className="flex flex-col gap-2">
+            <div
+              className="inline-flex w-fit border border-border p-0.5"
+              role="group"
+              aria-label={t("billing.billingInterval")}
+            >
+              <button
+                type="button"
+                className={
+                  interval === "month"
+                    ? "bg-foreground px-3 py-1.5 text-xs text-background"
+                    : "px-3 py-1.5 text-xs text-muted-foreground"
+                }
+                onClick={() => setInterval("month")}
+              >
+                {t("billing.payMonthly")}
+              </button>
+              <button
+                type="button"
+                disabled={!yearlyEnabled}
+                className={
+                  interval === "year"
+                    ? "bg-foreground px-3 py-1.5 text-xs text-background"
+                    : "px-3 py-1.5 text-xs text-muted-foreground disabled:opacity-40"
+                }
+                onClick={() => yearlyEnabled && setInterval("year")}
+              >
+                {t("billing.payYearly")}
+              </button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {interval === "year"
+                ? t("billing.yearlyHint")
+                : t("billing.monthlyHint")}
+            </p>
+          </div>
+        ) : null}
       <div className="flex flex-wrap gap-2">
-        {plan === "free" ? (
+        {plan === "free" || trialActive ? (
           <>
             <Button
               type="button"
@@ -239,7 +293,11 @@ export function BillingPanel({
                 void (canStripe ? upgradeStripe("pro") : upgradeMock("pro"))
               }
             >
-              {busy === "pro" ? t("billing.working") : t("billing.upgradeToPro")}
+              {busy === "pro"
+                ? t("billing.working")
+                : trialActive
+                  ? t("billing.keepPro")
+                  : t("billing.upgradeToPro")}
             </Button>
             <Button
               type="button"
@@ -298,6 +356,7 @@ export function BillingPanel({
           </>
         )}
       </div>
+      </div>
 
       <p className="text-sm text-muted-foreground">
         {t("billing.comparePlansPrefix")}{" "}
@@ -307,6 +366,10 @@ export function BillingPanel({
         . {t("billing.comparePlansSuffix")}{" "}
         <Link href="/settings/team" className="underline underline-offset-2">
           {t("nav.team")}
+        </Link>
+        .{" "}
+        <Link href="/settings/domain" className="underline underline-offset-2">
+          {t("domain.title")}
         </Link>
         .
       </p>

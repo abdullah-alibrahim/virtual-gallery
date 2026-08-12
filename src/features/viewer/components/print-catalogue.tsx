@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import type { SceneManifest } from "@/core/entities";
+import type { SceneArtwork, SceneManifest } from "@/core/entities";
 import { formatDimensions } from "@/core/value-objects/dimensions";
 import { formatMoney } from "@/core/value-objects/money";
 import { siteConfig } from "@/config/site";
@@ -10,8 +10,8 @@ import { useLocale, useT } from "@/i18n/locale-provider";
 import type { MessageKey } from "@/i18n/translate";
 
 /**
- * Printable exhibition catalogue — designed for paper / PDF “Save as PDF”.
- * Screen chrome is no-print; the list is catalogue-measured and serif-led.
+ * Printable museum catalogue — cover plate + one page per work, bilingual.
+ * Designed for A4 “Save as PDF”. Screen chrome is `.no-print`.
  */
 export function PrintCatalogue({
   manifest,
@@ -25,6 +25,7 @@ export function PrintCatalogue({
   const t = useT();
   const locale = useLocale();
   const works = manifest.artworks;
+  const cover = pickCoverWork(works);
   const printed = new Date().toLocaleDateString(
     locale === "ar" ? "ar" : "en-GB",
     {
@@ -64,88 +65,270 @@ export function PrintCatalogue({
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-4xl px-4 py-14 sm:px-6 md:py-20">
-        <header className="border-b border-[color:var(--luxury-ink)]/15 pb-10">
-          <p className="text-[11px] tracking-[0.22em] text-muted-foreground uppercase">
-            {t("walk.exhibitionCatalogue")}
+      <article className="print-catalogue-sheet mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 md:py-14">
+        <section className="print-catalogue-page print-catalogue-cover">
+          <p className="print-catalogue-kicker">
+            <span lang="en">Exhibition catalogue</span>
+            <span className="print-catalogue-dot" aria-hidden>
+              ·
+            </span>
+            <span lang="ar" dir="rtl">
+              كتالوج المعرض
+            </span>
           </p>
-          <h1 className="mt-4 font-serif text-4xl tracking-tight text-balance md:text-5xl">
+          {cover ? (
+            <CatalogueFigure
+              artwork={cover}
+              className="print-catalogue-hero"
+              priority
+            />
+          ) : null}
+          <h1 className="mt-8 font-serif text-4xl tracking-tight text-balance md:text-5xl">
             {manifest.title}
           </h1>
           <p className="mt-3 text-base text-muted-foreground">
             {manifest.artist.displayName}
             <span className="mx-2 text-border">·</span>
-            {works.length}{" "}
-            {works.length === 1 ? t("walk.work") : t("walk.works")}
+            {t("walk.catalogueWorks", { count: works.length })}
           </p>
           {manifest.description ? (
             <p className="mt-6 max-w-prose text-[15px] leading-relaxed text-foreground/80">
               {manifest.description}
             </p>
           ) : null}
-          <p className="mt-8 text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
+          <p className="mt-10 text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
             {t("walk.printedOn", { date: printed, site: siteConfig.name })}
           </p>
-        </header>
+        </section>
 
-        <ol className="mt-2">
-          {works.map((artwork, index) => (
-            <li
-              key={artwork.id}
-              className="grid gap-6 border-b border-[color:var(--luxury-ink)]/10 py-10 md:grid-cols-[7rem_1fr] md:gap-10"
-            >
-              <p className="font-mono text-xs tracking-[0.18em] text-muted-foreground">
-                {String(index + 1).padStart(2, "0")}
-              </p>
+        {works.map((artwork, index) => (
+          <section
+            key={artwork.id}
+            className="print-catalogue-page print-catalogue-work"
+          >
+            <p className="print-catalogue-kicker">
+              <span lang="en">
+                Plate {String(index + 1).padStart(2, "0")}
+              </span>
+              <span className="print-catalogue-dot" aria-hidden>
+                ·
+              </span>
+              <span lang="ar" dir="rtl">
+                لوحة {String(index + 1).padStart(2, "0")}
+              </span>
+            </p>
+            <CatalogueFigure artwork={artwork} className="print-catalogue-plate" />
+            <WorkHead artwork={artwork} locale={locale} />
+            <dl className="print-catalogue-meta">
               <div>
-                <h2 className="font-serif text-2xl tracking-tight">
-                  {artwork.title}
-                </h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {[artwork.year, artwork.medium].filter(Boolean).join(" · ") ||
-                    "—"}
-                </p>
-                <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-                  <div className="flex justify-between gap-4 sm:block">
-                    <dt className="text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
-                      {t("walk.dimensions")}
-                    </dt>
-                    <dd className="sm:mt-0.5">
-                      {formatDimensions(
-                        artwork.dimensions,
-                        locale === "ar" ? "ar" : "en",
-                      )}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-4 sm:block">
-                    <dt className="text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
-                      {t("walk.availability")}
-                    </dt>
-                    <dd className="sm:mt-0.5">
-                      {availabilityLabel(artwork.availability, t)}
-                      {artwork.price ? ` · ${formatMoney(artwork.price)}` : ""}
-                    </dd>
-                  </div>
-                </dl>
-                {artwork.description ? (
-                  <p className="mt-4 max-w-prose text-sm leading-relaxed text-foreground/75">
-                    {artwork.description}
-                  </p>
-                ) : null}
+                <dt>
+                  <span lang="en">Year</span>
+                  <span aria-hidden> / </span>
+                  <span lang="ar" dir="rtl">
+                    السنة
+                  </span>
+                </dt>
+                <dd>{artwork.year ?? "—"}</dd>
               </div>
-            </li>
-          ))}
-        </ol>
+              <div>
+                <dt>
+                  <span lang="en">Medium</span>
+                  <span aria-hidden> / </span>
+                  <span lang="ar" dir="rtl">
+                    الخامة
+                  </span>
+                </dt>
+                <dd>
+                  <MediumLines artwork={artwork} locale={locale} />
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  <span lang="en">Dimensions</span>
+                  <span aria-hidden> / </span>
+                  <span lang="ar" dir="rtl">
+                    القياسات
+                  </span>
+                </dt>
+                <dd>
+                  {formatDimensions(
+                    artwork.dimensions,
+                    locale === "ar" ? "ar" : "en",
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>
+                  <span lang="en">Availability</span>
+                  <span aria-hidden> / </span>
+                  <span lang="ar" dir="rtl">
+                    التوفر
+                  </span>
+                </dt>
+                <dd>
+                  {availabilityLabel(artwork.availability, t)}
+                  {artwork.price ? ` · ${formatMoney(artwork.price)}` : ""}
+                </dd>
+              </div>
+            </dl>
+            <WorkStatement artwork={artwork} locale={locale} />
+          </section>
+        ))}
 
-        <footer className="mt-14 border-t border-[color:var(--luxury-ink)]/12 pt-8 text-center text-xs text-muted-foreground">
-          <p className="font-serif text-lg tracking-tight text-foreground">
-            {siteConfig.name}
+        <footer className="print-catalogue-page print-catalogue-colophon">
+          <p className="font-serif text-lg tracking-tight">{siteConfig.name}</p>
+          <p className="mt-2 font-mono text-[10px] text-muted-foreground">
+            {walkHref}
           </p>
-          <p className="mt-2 font-mono text-[10px]">{walkHref}</p>
         </footer>
-      </div>
+      </article>
     </main>
   );
+}
+
+function WorkHead({
+  artwork,
+  locale,
+}: {
+  artwork: SceneArtwork;
+  locale: string;
+}) {
+  const bi = artwork.bilingual;
+  if (bi && bi.titleEn !== bi.titleAr) {
+    const first = locale === "ar" ? bi.titleAr : bi.titleEn;
+    const second = locale === "ar" ? bi.titleEn : bi.titleAr;
+    const firstLang = locale === "ar" ? "ar" : "en";
+    const secondLang = locale === "ar" ? "en" : "ar";
+    return (
+      <header className="print-catalogue-titles">
+        <h2
+          className="font-serif text-3xl tracking-tight text-balance"
+          lang={firstLang}
+          dir={firstLang === "ar" ? "rtl" : "ltr"}
+        >
+          {first}
+        </h2>
+        <p
+          className="mt-1 font-serif text-xl tracking-tight text-muted-foreground text-balance"
+          lang={secondLang}
+          dir={secondLang === "ar" ? "rtl" : "ltr"}
+        >
+          {second}
+        </p>
+      </header>
+    );
+  }
+  return (
+    <header className="print-catalogue-titles">
+      <h2 className="font-serif text-3xl tracking-tight text-balance">
+        {artwork.title}
+      </h2>
+    </header>
+  );
+}
+
+function MediumLines({
+  artwork,
+  locale,
+}: {
+  artwork: SceneArtwork;
+  locale: string;
+}) {
+  const bi = artwork.bilingual;
+  if (bi?.mediumEn && bi.mediumAr && bi.mediumEn !== bi.mediumAr) {
+    const first = locale === "ar" ? bi.mediumAr : bi.mediumEn;
+    const second = locale === "ar" ? bi.mediumEn : bi.mediumAr;
+    return (
+      <>
+        {first}
+        <span className="text-muted-foreground"> · {second}</span>
+      </>
+    );
+  }
+  return <>{artwork.medium || "—"}</>;
+}
+
+function WorkStatement({
+  artwork,
+  locale,
+}: {
+  artwork: SceneArtwork;
+  locale: string;
+}) {
+  const bi = artwork.bilingual;
+  if (bi?.descriptionEn && bi.descriptionAr) {
+    const first = locale === "ar" ? bi.descriptionAr : bi.descriptionEn;
+    const second = locale === "ar" ? bi.descriptionEn : bi.descriptionAr;
+    const firstLang = locale === "ar" ? "ar" : "en";
+    const secondLang = locale === "ar" ? "en" : "ar";
+    return (
+      <div className="print-catalogue-statement">
+        <p lang={firstLang} dir={firstLang === "ar" ? "rtl" : "ltr"}>
+          {first}
+        </p>
+        {second !== first ? (
+          <p
+            className="mt-3 text-foreground/70"
+            lang={secondLang}
+            dir={secondLang === "ar" ? "rtl" : "ltr"}
+          >
+            {second}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+  if (!artwork.description) return null;
+  return (
+    <p className="print-catalogue-statement">{artwork.description}</p>
+  );
+}
+
+function CatalogueFigure({
+  artwork,
+  className,
+  priority = false,
+}: {
+  artwork: SceneArtwork;
+  className?: string;
+  priority?: boolean;
+}) {
+  const src = catalogueImageSrc(artwork);
+  if (!src) {
+    return (
+      <div
+        className={`print-catalogue-figure print-catalogue-figure-empty ${className ?? ""}`}
+      />
+    );
+  }
+  return (
+    <figure className={`print-catalogue-figure ${className ?? ""}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={artwork.title}
+        className="print-catalogue-img"
+        loading={priority ? "eager" : "lazy"}
+      />
+    </figure>
+  );
+}
+
+function catalogueImageSrc(artwork: SceneArtwork): string | null {
+  if (artwork.previewUrl) return artwork.previewUrl;
+  const url = artwork.textures.lod0;
+  if (/\.(jpe?g|png|webp|gif|avif|svg)(\?|#|$)/i.test(url)) return url;
+  if (url.startsWith("/") && !url.includes(".ktx2")) return url;
+  return null;
+}
+
+function pickCoverWork(works: readonly SceneArtwork[]): SceneArtwork | null {
+  if (works.length === 0) return null;
+  return works.reduce((best, work) => {
+    const area = work.dimensions.width * work.dimensions.height;
+    const bestArea = best.dimensions.width * best.dimensions.height;
+    return area > bestArea ? work : best;
+  });
 }
 
 function availabilityLabel(

@@ -158,6 +158,11 @@ service cloud.firestore {
       allow write: if false; // CF transaction only
     }
 
+    match /hostnames/{host} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // ── async jobs ─────────────────────────────────────────────────────────
     match /jobs/{jobId} {
       allow read: if isSignedIn() && resource.data.ownerId == uid();

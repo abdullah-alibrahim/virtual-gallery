@@ -60,11 +60,13 @@ export const noirSalonTemplate: SceneTemplate = {
     floor: "#161418",
     ceiling: "#101012",
     trim: "#b8956a",
-    wallRoughness: 0.88,
-    floorRoughness: 0.32,
-    floorMetalness: 0.12,
+    wallRoughness: 0.86,
+    floorRoughness: 0.28,
+    floorMetalness: 0.14,
     ceilingRoughness: 0.95,
     floorStyle: "stone",
+    floorTextureId: "stone_tile",
+    wallTextureId: "plaster_smooth",
   },
   architecture: {
     beams: {
@@ -99,14 +101,23 @@ export const noirSalonTemplate: SceneTemplate = {
         color: "#3a3228",
         glb: true,
       },
+      {
+        position: [-3.4, 0, -3.4],
+        size: [1.6, 0.4, 0.46],
+        color: "#3a3228",
+        yaw: Math.PI / 2,
+        glb: true,
+      },
     ],
     glbProps: [
       { model: "bust", position: [-2.8, 0.95, 1.6], scale: 1.08 },
       { model: "vase", position: [2.9, 0.85, -2.2], scale: 1.0 },
       { model: "plinth_table", position: [4.2, 0, 4.6], scale: 1.05 },
+      { model: "plinth_table", position: [-4.2, 0, 4.5], scale: 1.0, yaw: 0.4 },
       { model: "plant", position: [4.55, 0, 5.35], scale: 1.28, yaw: -0.3 },
       { model: "plant", position: [-4.55, 0, 5.35], scale: 1.25, yaw: 0.8 },
       { model: "plant", position: [4.55, 0, -5.4], scale: 1.22, yaw: 0.4 },
+      { model: "plant", position: [-4.5, 0, -5.35], scale: 1.2, yaw: 1.0 },
     ],
     signs: [
       {
@@ -193,9 +204,9 @@ export const noirSalonTemplate: SceneTemplate = {
   frameDefaults: createFrameSpec({
     style: "thin",
     color: "#0e0e10",
-    widthCm: 1.6,
-    matteCm: 0,
-    matteColor: "#0e0e10",
+    widthCm: 2.2,
+    matteCm: 2,
+    matteColor: "#141416",
   }),
   preview: { imagePath: "/templates/noir-salon/preview.jpg" },
 };

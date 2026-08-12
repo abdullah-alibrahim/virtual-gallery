@@ -20,14 +20,22 @@ export function CreateGalleryForm({
   remaining,
   limit,
   plan = "free",
+  initialTemplateId,
 }: {
   remaining?: number;
   limit?: number;
   plan?: PlanId;
+  initialTemplateId?: string;
 } = {}) {
   const router = useRouter();
   const t = useT();
   const firstAllowed =
+    (initialTemplateId &&
+    TEMPLATE_CATALOGUE.some(
+      (tpl) => tpl.id === initialTemplateId && canUseTemplateTier(plan, tpl.tier),
+    )
+      ? initialTemplateId
+      : null) ??
     TEMPLATE_CATALOGUE.find((tpl) => canUseTemplateTier(plan, tpl.tier))?.id ??
     TEMPLATE_CATALOGUE[0]?.id ??
     "";

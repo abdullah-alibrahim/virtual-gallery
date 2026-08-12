@@ -9,13 +9,24 @@ export function GalleryLimitBanner({
   used,
   limit,
   plan,
+  trialDaysLeft = 0,
 }: {
   used: number;
   limit: number;
   plan: string;
+  trialDaysLeft?: number;
 }) {
   const t = useT();
   const atCap = used >= limit;
+
+  if (trialDaysLeft > 0 && !atCap) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        {t("billing.galleriesUsed", { used, limit })}{" "}
+        {t("billing.onTrial", { days: trialDaysLeft })}
+      </p>
+    );
+  }
 
   if (!atCap) {
     return (

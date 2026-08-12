@@ -11,7 +11,11 @@
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
 import type { Auth } from "firebase-admin/auth";
 
-import { PLAN_LIMITS } from "@/core/services/plan-limits";
+import { limitsForPlan } from "@/core/services/enforce-plan-limits";
+import {
+  productTrialBilling,
+  trialPeriodEnd,
+} from "@/core/services/pro-trial";
 import { isReservedSlug, isValidSlug, slugify } from "@/core/value-objects/slug";
 
 export interface BootstrapInput {
@@ -51,7 +55,8 @@ export async function bootstrapUserAccount(
     "Artist";
   const slug = await reserveUniqueSlug(db, displayName, workspaceId);
   const now = FieldValue.serverTimestamp();
-  const limits = PLAN_LIMITS.free;
+  const limits = limitsForPlan("pro");
+  const trialBilling = productTrialBilling(trialPeriodEnd());
 
   await db.runTransaction(async (tx) => {
     const userRef = db.collection("users").doc(input.uid);
@@ -81,7 +86,7 @@ export async function bootstrapUserAccount(
     tx.set(workspaceRef, {
       type: "artist",
       name: displayName,
-      plan: "free",
+      plan: "pro",
       ownerId: input.uid,
       limits: {
         galleries: limits.galleries,
@@ -91,7 +96,7 @@ export async function bootstrapUserAccount(
         seats: limits.seats,
       },
       usage: { galleries: 0, artworks: 0, storageBytes: 0 },
-      billing: null,
+      billing: trialBilling,
       createdAt: now,
       updatedAt: now,
     });

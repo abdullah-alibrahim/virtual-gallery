@@ -10,6 +10,7 @@ import {
   compileSceneManifest,
   type LatestPointer,
 } from "@/core/services/compile-scene-manifest";
+import { sendGalleryPublishedEmail } from "@/infrastructure/email/send";
 import { getAdminDb } from "@/infrastructure/firebase/admin";
 
 import { loadPublishContext } from "./load-publish-context";
@@ -102,10 +103,53 @@ export async function publishGallery(input: {
     });
   });
 
-  return {
+  const result = {
     version: nextVersion,
     manifestPath: storagePath,
     publicUrl,
     viewerUrl: `${siteConfig.url}/g/${gallery.slug}`,
   };
+
+  void notifyGalleryPublished({
+    workspaceId: gallery.workspaceId,
+    uid: input.uid,
+    galleryTitle: gallery.title,
+    viewerUrl: result.viewerUrl,
+    firstPublish: nextVersion === 1,
+  }).catch((error) => {
+    console.error("[publish-email] failed", error);
+  });
+
+  return result;
+}
+
+async function notifyGalleryPublished(input: {
+  workspaceId: string;
+  uid: string;
+  galleryTitle: string;
+  viewerUrl: string;
+  firstPublish: boolean;
+}): Promise<void> {
+  const db = getAdminDb();
+  const [memberSnap, userSnap] = await Promise.all([
+    db
+      .collection("workspaces")
+      .doc(input.workspaceId)
+      .collection("members")
+      .doc(input.uid)
+      .get(),
+    db.collection("users").doc(input.uid).get(),
+  ]);
+  const to = String(memberSnap.data()?.email ?? userSnap.data()?.email ?? "");
+  if (!to) return;
+  const artistName =
+    String(memberSnap.data()?.displayName ?? userSnap.data()?.displayName ?? "") ||
+    "Artist";
+  await sendGalleryPublishedEmail({
+    to,
+    artistName,
+    galleryTitle: input.galleryTitle,
+    viewerUrl: input.viewerUrl,
+    firstPublish: input.firstPublish,
+  });
 }

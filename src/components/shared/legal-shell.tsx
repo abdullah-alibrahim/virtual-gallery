@@ -3,8 +3,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { BrandLockup } from "@/components/shared/house-mark";
 import { buttonVariants } from "@/components/ui/button";
-import { siteConfig } from "@/config/site";
 import { LanguageSwitcher } from "@/i18n/language-switcher";
 import { useT } from "@/i18n";
 import { cn } from "@/lib/utils";
@@ -33,12 +33,7 @@ export function LegalShell({
       </div>
       <main className="relative mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-16 sm:px-8 sm:py-20">
         <div className="flex flex-wrap items-center justify-between gap-3 page-enter">
-          <Link
-            href="/"
-            className="font-serif text-xl tracking-tight sm:text-2xl"
-          >
-            {siteConfig.name}
-          </Link>
+          <BrandLockup nameClassName="text-xl sm:text-2xl" />
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
             <Link

@@ -1,9 +1,10 @@
 import type { SceneArtwork, SceneManifest } from "@/core/entities";
+import { estimateExhibitionDimensions } from "@/core/services/artwork-ai-assist";
 import { modernWhiteTemplate } from "@/core/templates";
-import { createDimensions } from "@/core/value-objects/dimensions";
 import { createFrameSpec } from "@/core/value-objects/frame-spec";
 import { createMoney } from "@/core/value-objects/money";
 import { toSlug } from "@/core/value-objects/slug";
+import { demoArtworkPixels } from "@/features/marketing/lib/demo-artwork-pixels";
 
 /**
  * Walkable Modern White demo — nine large paintings filling every hang anchor.
@@ -22,10 +23,11 @@ export function buildDemoManifest(
     matteColor: "#f5f2ea",
   });
   const thin = createFrameSpec({
-    style: "thin",
-    color: "#111111",
-    widthCm: 1.8,
-    matteCm: 0,
+    style: "gallery",
+    color: "#1a1a1a",
+    widthCm: 2.4,
+    matteCm: 4,
+    matteColor: "#f5f2ea",
   });
 
   const artworks: SceneArtwork[] = [
@@ -35,8 +37,7 @@ export function buildDemoManifest(
       title: "The Starry Night",
       year: 1889,
       medium: "Oil on canvas",
-      w: 180,
-      h: 140,
+      longEdgeCm: 180,
       position: [-3.2, 1.65, -4.96],
       rotation: [0, 0, 0],
       url: tex("01.jpg"),
@@ -48,8 +49,7 @@ export function buildDemoManifest(
       title: "Self-Portrait",
       year: 1660,
       medium: "Oil on canvas",
-      w: 160,
-      h: 200,
+      longEdgeCm: 200,
       position: [0, 1.7, -4.96],
       rotation: [0, 0, 0],
       url: tex("02.jpg"),
@@ -61,8 +61,7 @@ export function buildDemoManifest(
       title: "The Great Wave off Kanagawa",
       year: 1831,
       medium: "Woodblock print",
-      w: 190,
-      h: 145,
+      longEdgeCm: 190,
       position: [3.2, 1.65, -4.96],
       rotation: [0, 0, 0],
       url: tex("03.jpg"),
@@ -74,8 +73,7 @@ export function buildDemoManifest(
       title: "Water Lilies",
       year: 1906,
       medium: "Oil on canvas",
-      w: 150,
-      h: 150,
+      longEdgeCm: 150,
       position: [4.96, 1.65, -2.5],
       rotation: [0, -Math.PI / 2, 0],
       url: tex("04.jpg"),
@@ -86,8 +84,7 @@ export function buildDemoManifest(
       title: "The Fighting Temeraire",
       year: 1839,
       medium: "Oil on canvas",
-      w: 170,
-      h: 120,
+      longEdgeCm: 170,
       position: [4.96, 1.6, 2.5],
       rotation: [0, -Math.PI / 2, 0],
       url: tex("06.jpg"),
@@ -100,8 +97,7 @@ export function buildDemoManifest(
       title: "A Pair of Shoes",
       year: 1886,
       medium: "Oil on canvas",
-      w: 120,
-      h: 180,
+      longEdgeCm: 170,
       position: [-4.96, 1.7, -2.5],
       rotation: [0, Math.PI / 2, 0],
       url: tex("05.jpg"),
@@ -112,8 +108,7 @@ export function buildDemoManifest(
       title: "Arrangement in Flesh Colour and Black",
       year: 1883,
       medium: "Oil on canvas",
-      w: 110,
-      h: 160,
+      longEdgeCm: 160,
       position: [-4.96, 1.65, 2.5],
       rotation: [0, Math.PI / 2, 0],
       url: tex("07.jpg"),
@@ -125,8 +120,7 @@ export function buildDemoManifest(
       title: "Trees and Houses Near the Jas de Bouffan",
       year: 1885,
       medium: "Oil on canvas",
-      w: 165,
-      h: 120,
+      longEdgeCm: 165,
       position: [-2.5, 1.6, 4.96],
       rotation: [0, Math.PI, 0],
       url: tex("08.jpg"),
@@ -137,8 +131,7 @@ export function buildDemoManifest(
       title: "Sunflowers",
       year: 1887,
       medium: "Oil on canvas",
-      w: 140,
-      h: 140,
+      longEdgeCm: 150,
       position: [2.5, 1.6, 4.96],
       rotation: [0, Math.PI, 0],
       url: tex("09.jpg"),
@@ -196,21 +189,26 @@ function piece(input: {
   title: string;
   year: number;
   medium: string;
-  w: number;
-  h: number;
+  longEdgeCm: number;
   position: readonly [number, number, number];
   rotation: readonly [number, number, number];
   url: string;
   frame: ReturnType<typeof createFrameSpec>;
   price?: ReturnType<typeof createMoney>;
 }): SceneArtwork {
+  const pixels = demoArtworkPixels(input.url);
+  const dimensions = estimateExhibitionDimensions(
+    pixels.widthPx,
+    pixels.heightPx,
+    input.longEdgeCm,
+  );
   return {
     id: input.id,
     title: input.title,
     description: "",
     year: input.year,
     medium: input.medium,
-    dimensions: createDimensions(input.w, input.h, "cm"),
+    dimensions,
     ...(input.price ? { price: input.price } : {}),
     availability: "available",
     frame: input.frame,
@@ -231,7 +229,7 @@ function piece(input: {
       lod2: input.url,
     },
     meta: {
-      aspectRatio: input.w / input.h,
+      aspectRatio: pixels.widthPx / pixels.heightPx,
       blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
     },
   };

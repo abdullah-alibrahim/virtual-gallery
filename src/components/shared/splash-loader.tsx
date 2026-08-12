@@ -81,6 +81,7 @@ export function SplashLoader({
       inert={isOut || undefined}
     >
       <div className="vg-splash-inner">
+        <span className="vg-splash-mark" aria-hidden="true" />
         <p className="vg-splash-brand">{brand}</p>
         <div className="vg-splash-rule" aria-hidden="true" />
         <div className="vg-splash-spinner" aria-hidden="true" />

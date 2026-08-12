@@ -35,6 +35,15 @@ export {
 export { PLAN_LIMITS } from "./plan-limits";
 
 export {
+  PRO_TRIAL_DAYS,
+  coerceDate,
+  isProTrialActive,
+  proTrialDaysLeft,
+  shouldExpireProTrial,
+  shouldGrantProTrial,
+} from "./pro-trial";
+
+export {
   ACCEPTED_IMAGE_TYPES,
   LOD_SIZES,
   MAX_UPLOAD_BYTES,

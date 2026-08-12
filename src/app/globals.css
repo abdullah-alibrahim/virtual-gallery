@@ -20,7 +20,7 @@
  */
 
 :root {
-  --radius: 0.5rem;
+  --radius: 0.15rem;
 
   /* Quiet luxury — warm stone, deep ink, muted brass (sparingly) */
   --luxury-stone: oklch(0.972 0.008 85);
@@ -428,11 +428,37 @@
   border-color: color-mix(in oklab, var(--viewer-brass) 35%, transparent);
 }
 
-.viewer-root[data-collector="true"] .viewer-title-plaque .viewer-title-text {
-  font-size: clamp(1.35rem, 2.4vw, 2.15rem);
+.viewer-root::before,
+.viewer-root::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset-inline: 0;
+  z-index: 12;
+}
+
+.viewer-root::before {
+  top: 0;
+  height: min(4.5vh, 2.4rem);
+  background: linear-gradient(
+    to bottom,
+    rgb(10 9 8 / 0.72),
+    transparent
+  );
+}
+
+.viewer-root::after {
+  bottom: 0;
+  height: min(5vh, 2.6rem);
+  background: linear-gradient(to top, rgb(10 9 8 / 0.62), transparent);
 }
 
 @media print {
+  @page {
+    size: A4;
+    margin: 12mm 14mm 14mm;
+  }
+
   .no-print {
     display: none !important;
   }
@@ -445,6 +471,123 @@
   .print-catalogue a {
     color: inherit;
     text-decoration: none;
+  }
+
+  .print-catalogue-sheet {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .print-catalogue-page {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .print-catalogue-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .print-catalogue-hero,
+  .print-catalogue-plate {
+    break-inside: avoid;
+  }
+
+  .print-catalogue-hero,
+  .print-catalogue-hero .print-catalogue-img {
+    max-height: 46vh;
+  }
+
+  .print-catalogue-plate,
+  .print-catalogue-plate .print-catalogue-img {
+    max-height: 52vh;
+  }
+}
+
+.print-catalogue-page {
+  padding-bottom: 2.5rem;
+}
+
+.print-catalogue-kicker {
+  margin: 0 0 1.25rem;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted-foreground, #6b6560);
+}
+
+.print-catalogue-dot {
+  margin: 0 0.55rem;
+  opacity: 0.4;
+}
+
+.print-catalogue-figure {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3efe8;
+  max-height: 62vh;
+}
+
+.print-catalogue-figure-empty {
+  min-height: 12rem;
+}
+
+.print-catalogue-hero {
+  max-height: 58vh;
+}
+
+.print-catalogue-img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 62vh;
+  object-fit: contain;
+  object-position: center;
+}
+
+.print-catalogue-titles {
+  margin-top: 1.35rem;
+}
+
+.print-catalogue-meta {
+  display: grid;
+  gap: 0.85rem 1.5rem;
+  margin-top: 1.25rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  font-size: 0.875rem;
+}
+
+.print-catalogue-meta dt {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground, #6b6560);
+}
+
+.print-catalogue-meta dd {
+  margin: 0.2rem 0 0;
+}
+
+.print-catalogue-statement {
+  margin-top: 1.25rem;
+  max-width: 42rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: color-mix(in oklab, var(--luxury-ink, #1c1916) 82%, transparent);
+}
+
+.print-catalogue-colophon {
+  padding-top: 2rem;
+  border-top: 1px solid color-mix(in oklab, var(--luxury-ink, #1c1916) 12%, transparent);
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .print-catalogue-meta {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -490,6 +633,16 @@ html:has(#vg-splash:not([data-state="out"])) {
   padding: 1.5rem;
   text-align: center;
   animation: splash-brand-in 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.vg-splash-mark {
+  width: 0.85rem;
+  height: 0.85rem;
+  margin-bottom: 0.1rem;
+  transform: rotate(45deg);
+  border: 1px solid var(--luxury-brass, #8a7048);
+  background: var(--luxury-brass, #8a7048);
+  box-shadow: inset 0 0 0 2.5px var(--luxury-stone, #fafaf8);
 }
 
 .vg-splash-brand {
@@ -539,6 +692,10 @@ html:has(#vg-splash:not([data-state="out"])) {
     color: oklch(0.96 0.006 85);
   }
 
+  html:not(.light) .vg-splash-mark {
+    box-shadow: inset 0 0 0 2.5px oklch(0.16 0.008 55);
+  }
+
   html:not(.light) .vg-splash-brand {
     color: oklch(0.96 0.006 85);
   }
@@ -562,6 +719,10 @@ html:has(#vg-splash:not([data-state="out"])) {
     ),
     var(--luxury-stone, #131313);
   color: var(--luxury-ink, #f5f2eb);
+}
+
+.dark .vg-splash-mark {
+  box-shadow: inset 0 0 0 2.5px var(--luxury-stone, #131313);
 }
 
 .dark .vg-splash-brand {
@@ -703,6 +864,47 @@ html:has(#vg-splash:not([data-state="out"])) {
     @apply min-h-dvh w-full bg-background text-foreground antialiased;
     font-feature-settings: "cv11", "ss01";
     overflow-x: clip;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--luxury-brass) 32%, transparent);
+    color: var(--luxury-ink);
+  }
+
+  /* Paper grain — skipped on the walk viewer so the hall stays optically clean. */
+  html:not(:has(.viewer-root)):not(:has(.print-catalogue)) body::before {
+    content: "";
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    opacity: 0.28;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  }
+
+  /* Museum passepartout — a thin brass inset around every 2D page. */
+  html:not(:has(.viewer-root)):not(:has(.print-catalogue)) body::after {
+    content: "";
+    pointer-events: none;
+    position: fixed;
+    inset: 9px;
+    z-index: 30;
+    border: 1px solid color-mix(in oklab, var(--luxury-brass) 34%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--luxury-ink) 5%, transparent);
+  }
+
+  @media (max-width: 640px) {
+    html:not(:has(.viewer-root)):not(:has(.print-catalogue)) body::after {
+      inset: 5px;
+    }
+  }
+
+  @media print {
+    html body::before,
+    html body::after {
+      display: none !important;
+    }
   }
 
   /* Visible focus for keyboard users only — the editor is fully keyboard-driven. */

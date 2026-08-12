@@ -37,6 +37,7 @@ export default async function DemoProPage({
         walkHref="/demo/pro"
         catalogueHref="/demo/pro/catalogue"
         mockupRouteKind="demo-pro"
+        useRoom={{ templateId: "mega-wing", title: "Mega Wing" }}
       />
     </>
   );

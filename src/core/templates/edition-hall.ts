@@ -58,11 +58,13 @@ export const editionHallTemplate: SceneTemplate = {
     floor: "#d4cec4",
     ceiling: "#f2f3f4",
     trim: "#e0e2e4",
-    wallRoughness: 0.95,
-    floorRoughness: 0.36,
-    floorMetalness: 0.035,
-    ceilingRoughness: 0.92,
+    wallRoughness: 0.92,
+    floorRoughness: 0.3,
+    floorMetalness: 0.05,
+    ceilingRoughness: 0.9,
     floorStyle: "stone",
+    floorTextureId: "stone_tile",
+    wallTextureId: "plaster_smooth",
   },
   architecture: {
     skylight: {
@@ -72,6 +74,13 @@ export const editionHallTemplate: SceneTemplate = {
       gridZ: 3,
       recessM: 0.24,
     },
+    window: {
+      wallId: "west",
+      width: 1.4,
+      height: 3.4,
+      sillM: 0.55,
+      arched: true,
+    },
     trackLights: {
       axis: "z",
       count: 2,
@@ -79,7 +88,7 @@ export const editionHallTemplate: SceneTemplate = {
       lengthM: 11,
       center: [0, 0],
       spacingM: 7.0,
-      intensity: 0.34,
+      intensity: 0.38,
       maxLive: 5,
       railColor: "#9a9ea2",
     },
@@ -102,6 +111,7 @@ export const editionHallTemplate: SceneTemplate = {
       { model: "plant", position: [-4.7, 0, 5.0], scale: 1.25, yaw: 0.7 },
       { model: "plant", position: [4.7, 0, -5.0], scale: 1.22, yaw: -0.4 },
       { model: "plant", position: [-4.7, 0, -5.0], scale: 1.25, yaw: 1.0 },
+      { model: "plinth_table", position: [4.2, 0, 4.2], scale: 1.0 },
     ],
     signs: [
       {
@@ -192,8 +202,8 @@ export const editionHallTemplate: SceneTemplate = {
   frameDefaults: createFrameSpec({
     style: "gallery",
     color: "#1c1e20",
-    widthCm: 2.0,
-    matteCm: 7,
+    widthCm: 2.8,
+    matteCm: 8,
     matteColor: "#f8f8f7",
   }),
   preview: { imagePath: "/templates/edition-hall/preview.jpg" },

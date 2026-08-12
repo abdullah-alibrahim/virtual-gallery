@@ -5,7 +5,7 @@
 import { FieldValue, type DocumentReference } from "firebase-admin/firestore";
 import { randomUUID } from "node:crypto";
 
-import type { PlanId, WorkspaceLimits, WorkspaceUsage } from "@/core/entities";
+import type { PlanId, WorkspaceUsage } from "@/core/entities";
 import { ForbiddenError, PlanLimitError } from "@/core/errors";
 import {
   assertCanUpload,
@@ -16,6 +16,7 @@ import {
 } from "@/core/services";
 
 import { getAdminDb } from "@/infrastructure/firebase/admin";
+import { reconcileWorkspacePlan } from "@/infrastructure/billing/pro-trial";
 
 export interface CreateAssetInput {
   readonly uid: string;
@@ -59,8 +60,9 @@ export async function createAssetUpload(
     throw new ForbiddenError("upload: not an editor on this workspace");
   }
 
-  const usage = data.usage as WorkspaceUsage;
-  const limits = data.limits as WorkspaceLimits;
+  const reconciled = await reconcileWorkspacePlan(input.workspaceId);
+  const usage = (reconciled?.usage ?? data.usage) as WorkspaceUsage;
+  const limits = reconciled?.limits ?? data.limits;
   try {
     assertCanUpload(usage, limits, input.bytes);
   } catch (error) {

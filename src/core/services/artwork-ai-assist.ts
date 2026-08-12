@@ -14,6 +14,30 @@ import {
   type FrameStyle,
 } from "@/core/value-objects/frame-spec";
 
+/**
+ * Keep the long edge, reshape to the picture’s pixel aspect.
+ * Stops square / invented hang sizes from stretching a landscape or portrait.
+ */
+export function fitSizeToAspect(
+  width: number,
+  height: number,
+  aspect: number,
+): { width: number; height: number } {
+  if (!Number.isFinite(aspect) || aspect <= 0.05) {
+    return { width, height };
+  }
+  const current = width / Math.max(height, 0.001);
+  const slack = 0.05 * Math.max(current, aspect);
+  if (Math.abs(current - aspect) <= slack) {
+    return { width, height };
+  }
+  const long = Math.max(width, height);
+  if (aspect >= 1) {
+    return { width: long, height: long / aspect };
+  }
+  return { width: long * aspect, height: long };
+}
+
 /** Exhibition-scale size from pixel aspect — long edge ~120 cm by default. */
 export function estimateExhibitionDimensions(
   pixelWidth: number,

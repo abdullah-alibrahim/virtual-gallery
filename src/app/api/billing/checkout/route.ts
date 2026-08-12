@@ -9,6 +9,7 @@ export const runtime = "nodejs";
 
 const bodySchema = z.object({
   plan: z.enum(["pro", "studio"]),
+  interval: z.enum(["month", "year"]).optional().default("month"),
 });
 
 export async function POST(request: Request) {
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
       uid: ctx.session.uid,
       workspaceId: ctx.account.defaultWorkspaceId,
       plan: parsed.data.plan,
+      interval: parsed.data.interval,
       email: ctx.account.email,
     });
     return NextResponse.json(result);

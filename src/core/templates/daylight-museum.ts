@@ -19,16 +19,16 @@ export const daylightMuseumTemplate: SceneTemplate = {
     scale: 1,
   },
   environment: {
-    exposure: 1.04,
+    exposure: 1.07,
     background: "#d8dde3",
     toneMapping: "aces",
   },
   lighting: {
-    ambient: { color: "#f4f6f8", intensity: 0.28 },
+    ambient: { color: "#f4f6f8", intensity: 0.24 },
     hemisphere: {
       skyColor: "#eef3f8",
       groundColor: "#b8c0c8",
-      intensity: 0.46,
+      intensity: 0.44,
     },
     // Soft overhead skylight key (cool daylight, not wash-out).
     key: {
@@ -60,11 +60,13 @@ export const daylightMuseumTemplate: SceneTemplate = {
     floor: "#d2c8b8",
     ceiling: "#eef0f2",
     trim: "#d5d8dc",
-    wallRoughness: 0.94,
-    floorRoughness: 0.38,
-    floorMetalness: 0.04,
+    wallRoughness: 0.92,
+    floorRoughness: 0.3,
+    floorMetalness: 0.055,
     ceilingRoughness: 0.88,
     floorStyle: "stone",
+    floorTextureId: "stone_tile",
+    wallTextureId: "plaster_smooth",
   },
   architecture: {
     skylight: {
@@ -81,6 +83,17 @@ export const daylightMuseumTemplate: SceneTemplate = {
       sillM: 0.45,
       offsetM: -1.1,
       arched: true,
+    },
+    trackLights: {
+      axis: "z",
+      count: 2,
+      spotsPerRail: 6,
+      lengthM: 10,
+      center: [0, 0],
+      spacingM: 6.4,
+      intensity: 0.4,
+      maxLive: 5,
+      railColor: "#9aa0a6",
     },
     plinths: [
       { position: [-2.6, 0, 1.8], size: [0.55, 0.95, 0.55] },

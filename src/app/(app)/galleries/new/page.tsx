@@ -16,12 +16,17 @@ export const metadata: Metadata = {
   title: "New gallery",
 };
 
-export default async function NewGalleryPage() {
+export default async function NewGalleryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ template?: string }>;
+}) {
   const ctx = await getAuthContext();
   if (!ctx) redirect("/sign-in?force=1");
   if (ctx.account && !ctx.account.onboarding.completed) redirect("/onboarding");
 
   const { t } = await getTranslator();
+  const { template } = await searchParams;
 
   const usage = ctx.account
     ? await loadWorkspaceUsage(ctx.account.defaultWorkspaceId)
@@ -58,7 +63,12 @@ export default async function NewGalleryPage() {
 
   return (
     <AppPage narrow>
-      <CreateGalleryForm remaining={limit - used} limit={limit} plan={plan} />
+      <CreateGalleryForm
+        remaining={limit - used}
+        limit={limit}
+        plan={plan}
+        initialTemplateId={template}
+      />
     </AppPage>
   );
 }

@@ -70,7 +70,7 @@ export function GalleryList({
           <li
             key={gallery.id}
             className={cn(
-              "flex flex-col overflow-hidden border border-border bg-card/60 stagger-fade",
+              "flex flex-col overflow-hidden border border-border bg-card/60 stagger-fade transition-[border-color,box-shadow] duration-300 hover:border-[color:var(--luxury-brass)]/40",
               delayClass,
             )}
           >

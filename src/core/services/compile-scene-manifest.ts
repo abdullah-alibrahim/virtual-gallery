@@ -212,6 +212,9 @@ function toSceneArtwork(
     },
     lighting: artwork.lighting,
     textures: { lod0: ktx2_2048, lod1: ktx2_1024, lod2: ktx2_512 },
+    ...(asset.variants.thumb_512
+      ? { previewUrl: asset.variants.thumb_512 }
+      : {}),
     meta: {
       aspectRatio:
         asset.meta.aspectRatio ??

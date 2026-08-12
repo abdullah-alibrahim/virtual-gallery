@@ -8,6 +8,7 @@ import { getAdminDb } from "@/infrastructure/firebase/admin";
 import {
   getStripe,
   isStripeConfigured,
+  isYearlyStripeConfigured,
   priceIdForPlan,
 } from "./stripe";
 
@@ -16,10 +17,18 @@ export async function createCheckoutSession(input: {
   workspaceId: string;
   plan: "pro" | "studio";
   email: string;
+  interval?: "month" | "year";
 }): Promise<{ url: string }> {
   if (!isStripeConfigured()) {
     throw new ValidationError(
       "Billing is not configured yet. Set Stripe env vars to enable upgrades.",
+    );
+  }
+
+  const interval = input.interval ?? "month";
+  if (interval === "year" && !isYearlyStripeConfigured()) {
+    throw new ValidationError(
+      "Yearly prices are not configured yet. Set STRIPE_PRICE_PRO_YEARLY and STRIPE_PRICE_STUDIO_YEARLY.",
     );
   }
 
@@ -44,18 +53,20 @@ export async function createCheckoutSession(input: {
     mode: "subscription",
     customer: billing?.stripeCustomerId || undefined,
     customer_email: billing?.stripeCustomerId ? undefined : input.email,
-    line_items: [{ price: priceIdForPlan(input.plan), quantity: 1 }],
+    line_items: [{ price: priceIdForPlan(input.plan, interval), quantity: 1 }],
     success_url: `${siteConfig.url}/settings/billing?checkout=success`,
     cancel_url: `${siteConfig.url}/settings/billing?checkout=cancel`,
     metadata: {
       workspaceId: input.workspaceId,
       uid: input.uid,
       plan: input.plan,
+      interval,
     },
     subscription_data: {
       metadata: {
         workspaceId: input.workspaceId,
         plan: input.plan,
+        interval,
       },
     },
     allow_promotion_codes: true,

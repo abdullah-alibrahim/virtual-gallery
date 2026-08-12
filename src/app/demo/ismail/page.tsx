@@ -39,6 +39,7 @@ export default async function DemoIsmailPage({
         walkHref="/demo/ismail"
         catalogueHref="/demo/ismail/catalogue"
         mockupRouteKind="demo"
+        useRoom={{ templateId: "mega-wing", title: "The Hall" }}
       />
     </>
   );

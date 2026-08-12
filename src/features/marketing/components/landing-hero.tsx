@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useMemo } from "react";
 
+import { HouseMark } from "@/components/shared/house-mark";
 import { buttonVariants } from "@/components/ui/button";
 import { softMuseumTemplate } from "@/core/templates";
 import { siteConfig } from "@/config/site";
-import { useT } from "@/i18n/locale-provider";
+import { useLocale, useT } from "@/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 
 import { buildLandingArtworks } from "../lib/landing-artworks";
@@ -19,6 +20,8 @@ import { MarketingRoomPanel } from "./marketing-room-panel";
 export function LandingHero() {
   const artworks = useMemo(() => buildLandingArtworks(), []);
   const t = useT();
+  const locale = useLocale();
+  const kickerAlt = locale === "ar" ? "Private viewing" : "مشاهدة خاصة";
 
   return (
     <section className="relative flex min-h-[calc(100dvh-4.5rem)] flex-col justify-end overflow-hidden">
@@ -44,14 +47,34 @@ export function LandingHero() {
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-20 pt-12 sm:px-8 sm:pb-28">
         <div className="hero-rise max-w-2xl space-y-6">
-          <div
-            aria-hidden
-            className="h-px w-12 bg-[color:var(--luxury-brass)]/70"
-          />
+          <div className="flex items-center gap-3">
+            <HouseMark
+              size={14}
+              className="text-[color:var(--luxury-brass)]"
+            />
+            <p className="text-[11px] tracking-[0.22em] text-muted-foreground uppercase">
+              {t("landing.viewingKicker")}
+              <span className="mx-2 opacity-40" aria-hidden>
+                ·
+              </span>
+              <span
+                lang={locale === "ar" ? "en" : "ar"}
+                dir={locale === "ar" ? "ltr" : "rtl"}
+                className="font-normal tracking-[0.12em] normal-case"
+              >
+                {kickerAlt}
+              </span>
+            </p>
+          </div>
           <p className="font-serif text-6xl leading-[0.94] tracking-tight text-balance sm:text-7xl lg:text-8xl">
             {siteConfig.name}
           </p>
-          <h1 className="stagger-fade stagger-fade-1 max-w-lg font-serif text-2xl leading-snug tracking-tight text-balance text-foreground/90 sm:text-3xl lg:text-[2rem]">
+          <h1
+            className={cn(
+              "stagger-fade stagger-fade-1 max-w-xl font-serif text-2xl leading-snug tracking-tight text-balance text-foreground/90 sm:text-3xl lg:text-[2.05rem]",
+              locale !== "ar" && "italic",
+            )}
+          >
             {t("landing.headline")}
           </h1>
           <p className="stagger-fade stagger-fade-2 max-w-md text-base leading-relaxed text-muted-foreground text-pretty sm:text-lg">

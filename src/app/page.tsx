@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 import {
   MarketingFooter,
@@ -12,6 +14,7 @@ import { siteConfig } from "@/config/site";
 import { softMuseumTemplate } from "@/core/templates";
 import { LandingHero, ServicesFeatures } from "@/features/marketing";
 import { getMarketingNavAuth } from "@/features/marketing/lib/nav-auth";
+import { lookupHostname } from "@/infrastructure/domains/custom-hostname";
 import { getTranslator } from "@/i18n/server";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +28,14 @@ export const metadata: Metadata = {
  * Below the fold: one job per section (services, walk, templates, collectors, hang steps).
  */
 export default async function LandingPage() {
+  const customHost = (await headers()).get("x-vg-custom-host");
+  if (customHost) {
+    const mapped = await lookupHostname(customHost);
+    if (mapped?.artistSlug) {
+      redirect(`/a/${mapped.artistSlug}`);
+    }
+  }
+
   const [{ cta, secondaryCta }, { t }] = await Promise.all([
     getMarketingNavAuth(),
     getTranslator(),
@@ -66,22 +77,27 @@ export default async function LandingPage() {
               {t("landing.walkBody")}
             </p>
           </div>
-          <ul className="grid gap-6 sm:grid-cols-3 sm:gap-8">
+          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 sm:gap-8">
             {[
+              {
+                href: "/demo/maison",
+                label: t("landing.walkMaison"),
+                delay: "",
+              },
               {
                 href: "/demo/pro",
                 label: t("landing.walkPro"),
-                delay: "",
+                delay: "stagger-fade-1",
               },
               {
                 href: "/demo/harbor",
                 label: t("landing.walkHarbor"),
-                delay: "stagger-fade-1",
+                delay: "stagger-fade-2",
               },
               {
                 href: "/demo/walk",
                 label: t("landing.walkQuiet"),
-                delay: "stagger-fade-2",
+                delay: "stagger-fade-3",
               },
             ].map((item) => (
               <li key={item.href} className={cn("stagger-fade", item.delay)}>

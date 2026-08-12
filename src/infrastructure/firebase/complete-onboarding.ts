@@ -13,6 +13,8 @@ import {
 import { ValidationError, ConflictError } from "@/core/errors";
 import { siteConfig } from "@/config/site";
 import { sendWelcomeEmail } from "@/infrastructure/email/send";
+import { createFirstExhibition } from "@/infrastructure/galleries/create-first-exhibition";
+import { loadWorkspaceUsage } from "@/infrastructure/workspaces/load-workspace-usage";
 
 import { getAdminDb } from "./admin";
 
@@ -26,6 +28,7 @@ export interface CompleteOnboardingInput {
 export interface CompleteOnboardingResult {
   readonly slug: string;
   readonly workspaceId: string;
+  readonly galleryId: string | null;
 }
 
 export async function completeOnboarding(
@@ -119,5 +122,20 @@ export async function completeOnboarding(
     });
   }
 
-  return { slug: nextSlug, workspaceId };
+  let galleryId: string | null = null;
+  try {
+    const usage = await loadWorkspaceUsage(workspaceId);
+    if (usage && usage.usage.galleries === 0) {
+      const first = await createFirstExhibition({
+        uid: input.uid,
+        workspaceId,
+        displayName,
+      });
+      galleryId = first?.galleryId ?? null;
+    }
+  } catch (error) {
+    console.error("[first-exhibition] failed", error);
+  }
+
+  return { slug: nextSlug, workspaceId, galleryId };
 }

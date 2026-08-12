@@ -11,15 +11,40 @@ export function PlanUsageBanner({
   plan,
   galleriesUsed,
   galleriesLimit,
+  trialDaysLeft = 0,
 }: {
   plan: string;
   galleriesUsed: number;
   galleriesLimit: number;
+  trialDaysLeft?: number;
 }) {
   const t = useT();
   const remaining = Math.max(0, galleriesLimit - galleriesUsed);
   const atCap = galleriesUsed >= galleriesLimit;
   const nearCap = !atCap && remaining <= 1 && galleriesLimit > 1;
+  const onTrial = trialDaysLeft > 0;
+
+  if (onTrial) {
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-4 border border-border px-4 py-3">
+        <p className="text-sm text-muted-foreground">
+          <span className="text-foreground">
+            {t("billing.galleriesSlash", {
+              used: galleriesUsed,
+              limit: galleriesLimit,
+            })}
+          </span>{" "}
+          {t("billing.onTrial", { days: trialDaysLeft })}
+        </p>
+        <Link
+          href="/settings/billing"
+          className={cn(buttonVariants({ variant: "secondary", size: "sm" }))}
+        >
+          {t("billing.keepPro")}
+        </Link>
+      </div>
+    );
+  }
 
   if (atCap) {
     return (

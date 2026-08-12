@@ -42,6 +42,7 @@ export default async function DemoIsmailBoatsPage({
         walkHref="/demo/ismail/boats"
         catalogueHref="/demo/ismail/boats/catalogue"
         mockupRouteKind="demo"
+        useRoom={{ templateId: "noir-salon", title: "Marakeb" }}
       />
     </>
   );

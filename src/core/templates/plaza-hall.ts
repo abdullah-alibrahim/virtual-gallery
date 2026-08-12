@@ -54,10 +54,12 @@ export const plazaHallTemplate: SceneTemplate = {
     ceiling: "#eef0f2",
     trim: "#d6d8dc",
     wallRoughness: 0.94,
-    floorRoughness: 0.5,
-    floorMetalness: 0.028,
+    floorRoughness: 0.38,
+    floorMetalness: 0.05,
     ceilingRoughness: 0.9,
     floorStyle: "plank",
+    floorTextureId: "wood_plank",
+    wallTextureId: "plaster_smooth",
   },
   architecture: {
     beams: {

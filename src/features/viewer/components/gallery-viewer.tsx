@@ -23,7 +23,9 @@ import {
 import { toast } from "sonner";
 
 import type { SceneManifest } from "@/core/entities";
+import { HouseMark } from "@/components/shared/house-mark";
 import { ErrorBoundary } from "@/components/shared/async-boundary";
+import { UseThisRoomButton } from "@/features/galleries/components/use-this-room-button";
 import { useIsDesktop, usePrefersReducedMotion } from "@/hooks/use-media-query";
 import {
   trackArtworkClick,
@@ -92,6 +94,8 @@ export function GalleryViewer({
   walkHref,
   catalogueHref,
   mockupRouteKind,
+  useRoom,
+  brandMark = true,
 }: {
   manifest: SceneManifest;
   walkEnabled?: boolean;
@@ -103,6 +107,9 @@ export function GalleryViewer({
   catalogueHref?: string;
   /** When set, artwork sheet links to room mockups / personal space. */
   mockupRouteKind?: "published" | "demo" | "demo-pro";
+  useRoom?: { templateId: string; title: string };
+  /** Free-plan house badge. Hidden on Pro / Studio / trial. */
+  brandMark?: boolean;
 }) {
   const isDesktop = useIsDesktop();
   const reduceMotion = usePrefersReducedMotion();
@@ -493,6 +500,10 @@ export function GalleryViewer({
           )}
         >
           <div className="flex flex-wrap items-center gap-2">
+            <HouseMark
+              size={11}
+              className="text-[color:var(--viewer-brass)]"
+            />
             <p className="text-[10px] tracking-[0.2em] text-white/40 uppercase">
               {t("walk.exhibition")}
             </p>
@@ -536,6 +547,16 @@ export function GalleryViewer({
               variant="ghost"
               className="me-0.5 hidden sm:inline-flex"
             />
+            {useRoom ? (
+              <div className="hidden sm:block">
+                <UseThisRoomButton
+                  templateId={useRoom.templateId}
+                  title={useRoom.title}
+                  size="sm"
+                  variant="secondary"
+                />
+              </div>
+            ) : null}
             <ChromeButton
               label={t("walk.listView")}
               onClick={goList}
@@ -646,9 +667,9 @@ export function GalleryViewer({
               !reduceMotion && "viewer-enter-panel",
             )}
           >
-            <div
-              aria-hidden
-              className="mx-auto mb-4 h-px w-10 bg-[color:var(--viewer-brass)]/50"
+            <HouseMark
+              size={12}
+              className="mx-auto mb-3 text-[color:var(--viewer-brass)]"
             />
             <p className="text-[10px] tracking-[0.22em] text-white/40 uppercase">
               {ready ? t("walk.hallReady") : t("walk.preparingEnter")}
@@ -911,6 +932,16 @@ export function GalleryViewer({
         >
           <FileText className="size-3" aria-hidden />
           Catalogue
+        </Link>
+      ) : null}
+
+      {brandMark && entered && !collectorMode ? (
+        <Link
+          href="/"
+          className="pointer-events-auto absolute right-3 bottom-3 z-20 hidden items-center gap-1.5 border border-white/[0.08] bg-black/35 px-2.5 py-1.5 text-[10px] tracking-[0.14em] text-white/50 uppercase backdrop-blur-sm transition-colors hover:text-white/80 md:inline-flex"
+        >
+          <HouseMark size={10} className="text-[color:var(--viewer-brass)]" />
+          {t("walk.madeWith")}
         </Link>
       ) : null}
     </div>

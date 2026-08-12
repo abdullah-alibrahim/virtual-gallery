@@ -3,10 +3,10 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { BrandLockup } from "@/components/shared/house-mark";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { SiteSocialLinks } from "@/components/shared/social-links";
 import { buttonVariants } from "@/components/ui/button";
-import { siteConfig } from "@/config/site";
 import { LanguageSwitcher } from "@/i18n/language-switcher";
 import { useT } from "@/i18n/locale-provider";
 import { cn } from "@/lib/utils";
@@ -36,12 +36,7 @@ export function MarketingNav({
 
   return (
     <header className="relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-5 pt-[max(1.25rem,env(safe-area-inset-top))] sm:gap-4 sm:px-8">
-      <Link
-        href="/"
-        className="font-serif text-xl tracking-tight sm:text-2xl"
-      >
-        {siteConfig.name}
-      </Link>
+      <BrandLockup nameClassName="text-xl sm:text-2xl" />
       <nav
         className="flex flex-wrap items-center justify-end gap-x-3 gap-y-2 text-sm text-muted-foreground sm:gap-x-5"
         aria-label={t("nav.marketing")}
@@ -83,9 +78,7 @@ export function MarketingFooter({
   return (
     <footer className="mx-auto flex w-full max-w-7xl flex-col gap-6 border-t border-border px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom))] text-sm text-muted-foreground sm:px-8">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-        <span className="font-serif text-base text-foreground">
-          {siteConfig.name}
-        </span>
+        <BrandLockup nameClassName="text-base sm:text-lg text-foreground" />
         <Link href="/templates" className="hover:text-foreground">
           {t("nav.templates")}
         </Link>

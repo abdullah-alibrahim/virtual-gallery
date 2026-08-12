@@ -74,13 +74,15 @@
   },
   "landing": {
     "eyebrow": "For artists & ateliers",
-    "headline": "Exhibitions you walk into",
+    "viewingKicker": "Private viewing",
+    "headline": "A room you enter. A show that stays.",
     "heroBody": "Hang at museum scale. Publish one link. Collectors enter a quiet room — not a feed.",
     "explorePro": "Try Pro hall",
     "start": "Start",
     "walkEyebrow": "Walk before you hang",
     "walkTitle": "Step into a finished show",
     "walkBody": "Pro hall, coastal pavilion, or a quiet white room — same first-person walk your visitors will take.",
+    "walkMaison": "Maison Salon",
     "walkPro": "Pro hall",
     "walkHarbor": "Harbor",
     "walkQuiet": "Quiet Rooms",
@@ -163,7 +165,8 @@
     "footer": "All plans include walkable publishing, first-person preview, and private originals. Upgrade or cancel anytime from Billing.",
     "analyticsRetention": "Analytics retention",
     "freeRooms": "Free rooms",
-    "freePlusPro": "Free + Pro"
+    "freePlusPro": "Free + Pro",
+    "orYearly": "or {price}/yr (two months free)"
   },
   "demo": {
     "title": "Try before you sign in",
@@ -260,6 +263,7 @@
     "publicPageHint": "This becomes your public artist page. You can change it later.",
     "couldNotSave": "Couldn't save",
     "welcomeIn": "You're set — welcome in.",
+    "welcomeInFirst": "Your first exhibition is ready — replace the samples, then publish.",
     "slugInvalid": "Choose a URL between 3–48 characters using letters, numbers, and hyphens."
   },
   "dashboard": {
@@ -275,7 +279,15 @@
     "draft": "Draft",
     "published": "Published",
     "unpublished": "Unpublished",
-    "archived": "Archived"
+    "archived": "Archived",
+    "checklistTitle": "Your first show",
+    "checklistHang": "Hang work",
+    "checklistHangBody": "Sample paintings are on the wall. Replace them with your own from Assets, or keep them while you learn the room.",
+    "checklistPublish": "Publish",
+    "checklistPublishBody": "Put the show on a public walkable link.",
+    "checklistShare": "Share the link",
+    "checklistShareBody": "After you publish, send collectors {url}",
+    "checklistOpenEditor": "Open editor"
   },
   "galleries": {
     "title": "Galleries",
@@ -372,6 +384,25 @@
     "allowEnquiries": "Allow collector enquiries",
     "saveProfile": "Save profile"
   },
+  "domain": {
+    "title": "Custom domain",
+    "body": "Point a Studio hostname at your public profile. Add the CNAME, then verify.",
+    "hostLabel": "Hostname",
+    "save": "Save domain",
+    "verify": "Verify DNS",
+    "remove": "Remove",
+    "saved": "Domain saved — add the CNAME, then verify",
+    "verified": "Domain verified",
+    "removed": "Domain removed",
+    "updateFailed": "Could not update domain",
+    "dnsTitle": "CNAME record",
+    "dnsBody": "In your DNS, CNAME {host} → {target}. Use a subdomain (gallery.yourstudio.com), not the bare apex.",
+    "vercelHint": "Then add the same hostname under Vercel → Project → Settings → Domains so HTTPS works.",
+    "liveTitle": "Live",
+    "liveBody": "Collectors can open https://{host}/ for your public studio.",
+    "studioOnly": "Studio plan",
+    "studioOnlyBody": "Custom domains are included on Studio. Upgrade to attach your own hostname."
+  },
   "billing": {
     "upgrade": "Upgrade",
     "current": "Current plan",
@@ -413,7 +444,17 @@
     "changePlanFailed": "Could not change plan",
     "mockUpgraded": "Upgraded to {plan} (mock billing)",
     "mockDowngraded": "Switched to Free (mock billing)",
-    "galleriesLabel": "Galleries"
+    "galleriesLabel": "Galleries",
+    "trialLabel": "Pro trial",
+    "trialDaysLeft": "{days} days left on Pro",
+    "trialChip": "Pro trial · {days}d",
+    "keepPro": "Keep Pro",
+    "onTrial": "on your Pro trial ({days} days left)",
+    "billingInterval": "Billing interval",
+    "payMonthly": "Monthly",
+    "payYearly": "Yearly",
+    "monthlyHint": "Billed monthly. Cancel anytime.",
+    "yearlyHint": "Two months free — Pro $290/yr, Studio $990/yr."
   },
   "assets": {
     "title": "Assets",
@@ -553,6 +594,9 @@
     "light": "Light",
     "roomLight": "Room & light",
     "hangHint": "Hang a painting from Assets, then drag it on the wall to place.",
+    "firstShowTitle": "Your first exhibition",
+    "firstShowBody": "Sample paintings are on the walls so the room isn’t empty. Replace them from Assets, then publish and share the link.",
+    "firstShowDismiss": "Got it",
     "selectHint": "Select a painting to edit placement, frame, and spot light.",
     "innerWorld": "Inner world",
     "innerWorldType": "Type",
@@ -630,6 +674,7 @@
   },
   "walk": {
     "exhibition": "Exhibition",
+    "madeWith": "Virtual Gallery",
     "privateLink": "Private link",
     "emptyRoom": "Empty room",
     "work": "work",
@@ -757,6 +802,8 @@
     "backToWalk": "Back to walk",
     "printSavePdf": "Print / Save PDF",
     "exhibitionCatalogue": "Exhibition catalogue",
+    "cataloguePlate": "Plate {n}",
+    "catalogueWorks": "{count} works",
     "printedOn": "Printed {date} · {site}",
     "dimensions": "Dimensions",
     "detailsFor": "Details for {title}",

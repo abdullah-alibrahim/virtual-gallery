@@ -2,9 +2,10 @@
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { DoubleSide, type Mesh } from "three";
+import { DoubleSide, type Mesh, type Texture } from "three";
 
 import type { SceneArtwork } from "@/core/entities";
+import { fitSizeToAspect } from "@/core/services/artwork-ai-assist";
 import { toMetres } from "@/core/value-objects/dimensions";
 
 import { pickLodLevel, pickLodLevelStable, textureUrlForLod } from "../loaders/lod";
@@ -29,9 +30,26 @@ export function ArtworkFrame({
   showHotspot?: boolean;
   onSelect?: (artworkId: string | null) => void;
 }) {
+  const { camera } = useThree();
+  const canvasRef = useRef<Mesh>(null);
+  const [lod, setLod] = useState(() => pickLodLevel(6, mobile));
+  const lodRef = useRef(lod);
+  const url = textureUrlForLod(artwork.textures, lod);
+  const texture = useArtworkTexture(url, {
+    seed: artwork.id,
+    anisotropy: mobile ? 2 : 4,
+  });
+
   const metres = toMetres(artwork.dimensions);
-  const width = metres.width * artwork.placement.scale;
-  const height = metres.height * artwork.placement.scale;
+  const hungW = metres.width * artwork.placement.scale;
+  const hungH = metres.height * artwork.placement.scale;
+  const natural = fitSizeToAspect(
+    hungW,
+    hungH,
+    textureAspect(texture) ?? artwork.meta.aspectRatio,
+  );
+  const width = natural.width;
+  const height = natural.height;
 
   const frame = artwork.frame;
   const moulding = (frame.widthCm / 100) * artwork.placement.scale;
@@ -43,16 +61,6 @@ export function ArtworkFrame({
   const matteH = canvasH + matte * 2;
   const outerW = matteW + moulding * 2;
   const outerH = matteH + moulding * 2;
-
-  const { camera } = useThree();
-  const canvasRef = useRef<Mesh>(null);
-  const [lod, setLod] = useState(() => pickLodLevel(6, mobile));
-  const lodRef = useRef(lod);
-  const url = textureUrlForLod(artwork.textures, lod);
-  const texture = useArtworkTexture(url, {
-    seed: artwork.id,
-    anisotropy: mobile ? 2 : 4,
-  });
 
   useLayoutEffect(() => {
     const mesh = canvasRef.current;
@@ -186,4 +194,12 @@ export function ArtworkFrame({
       ) : null}
     </group>
   );
+}
+
+function textureAspect(texture: Texture | null | undefined): number | null {
+  const image = texture?.image as { width?: number; height?: number } | undefined;
+  const width = image?.width ?? 0;
+  const height = image?.height ?? 0;
+  if (width < 2 || height < 2) return null;
+  return width / height;
 }

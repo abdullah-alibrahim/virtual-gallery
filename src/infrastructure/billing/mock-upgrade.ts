@@ -66,7 +66,12 @@ export async function applyMockPlanUpgrade(input: {
       },
       billing:
         input.plan === "free"
-          ? null
+          ? {
+              stripeCustomerId: "",
+              subscriptionId: null,
+              status: "canceled",
+              periodEnd: null,
+            }
           : {
               stripeCustomerId: `mock_${input.workspaceId}`,
               subscriptionId: `mock_sub_${input.plan}`,

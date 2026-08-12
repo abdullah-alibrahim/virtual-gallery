@@ -1,5 +1,6 @@
 import type { ComponentType, ReactNode } from "react";
 
+import { HouseMark } from "@/components/shared/house-mark";
 import { cn } from "@/lib/utils";
 
 /**
@@ -42,6 +43,10 @@ export function EmptyState({
         <span className="h-16 w-11 border border-border/80 bg-[radial-gradient(circle_at_45%_40%,#e8f0f5,#1a2a38)]" />
         <span className="h-14 w-9 border border-border/80 bg-[linear-gradient(160deg,#a83228,#2a0e0c)] soft-pulse" />
       </div>
+      <HouseMark
+        size={18}
+        className="relative text-[color:var(--luxury-brass)]"
+      />
       {Icon ? (
         <div className="relative flex size-12 items-center justify-center border border-border text-muted-foreground">
           <Icon className="size-5" aria-hidden />

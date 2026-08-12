@@ -32,6 +32,7 @@ import { ArtworkFrame } from "./artwork-frame";
 import { GalleryEnvironment } from "./gallery-environment";
 import { GalleryLights } from "./gallery-lights";
 import type { GalleryQuality } from "./gallery-quality";
+import { shouldUsePolishedFloor } from "./gallery-quality";
 import { SelectionRing } from "./selection-ring";
 import { TemplateShell } from "./template-shell";
 import { VisitorFloorShadow } from "./visitor-shadow";
@@ -131,14 +132,7 @@ export function SceneRoot({
       : "walk";
   const enableShadows = quality === "walk";
   const enableEffects = quality !== "edit" && !reducedMotion;
-  const reflective =
-    template.category === "museum" ||
-    template.category === "luxury" ||
-    template.category === "white" ||
-    template.category === "atrium" ||
-    template.category === "coastal" ||
-    template.category === "zen" ||
-    template.category === "timber";
+  const reflective = shouldUsePolishedFloor(quality, template.category);
 
   const editCameraPosition: [number, number, number] = orbitEnabled
     ? [spawn.position[0] + 2.5, 2.2, spawn.position[2] + 4.5]

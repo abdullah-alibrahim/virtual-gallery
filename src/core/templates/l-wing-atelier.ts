@@ -23,7 +23,7 @@ export const lWingAtelierTemplate: SceneTemplate = {
     toneMapping: "aces",
   },
   lighting: {
-    ambient: { color: "#f2ebe3", intensity: 0.36 },
+    ambient: { color: "#f2ebe3", intensity: 0.26 },
     hemisphere: {
       skyColor: "#fff6ec",
       groundColor: "#a89878",
@@ -54,10 +54,70 @@ export const lWingAtelierTemplate: SceneTemplate = {
     ceiling: "#f2ede6",
     trim: "#cfc4b6",
     wallRoughness: 0.94,
-    floorRoughness: 0.58,
-    floorMetalness: 0.025,
+    floorRoughness: 0.4,
+    floorMetalness: 0.04,
     ceilingRoughness: 0.99,
     floorStyle: "plank",
+    floorTextureId: "wood_plank",
+    wallTextureId: "plaster_smooth",
+  },
+  architecture: {
+    window: {
+      wallId: "west",
+      width: 1.45,
+      height: 2.65,
+      sillM: 0.5,
+      arched: true,
+    },
+    trackLights: {
+      axis: "x",
+      count: 2,
+      spotsPerRail: 6,
+      lengthM: 9.5,
+      center: [-0.4, -2.0],
+      spacingM: 3.4,
+      intensity: 0.4,
+      maxLive: 5,
+      railColor: "#b8956a",
+    },
+    plinths: [
+      { position: [3.55, 0, 2.35], size: [0.46, 0.88, 0.46] },
+      { position: [-4.15, 0, -3.55], size: [0.42, 0.32, 0.42] },
+    ],
+    benches: [
+      {
+        position: [-1.4, 0, -2.15],
+        size: [2.05, 0.42, 0.48],
+        color: "#6b5844",
+        glb: true,
+      },
+      {
+        position: [3.05, 0, 1.55],
+        size: [1.55, 0.4, 0.46],
+        color: "#6b5844",
+        yaw: Math.PI / 2,
+        glb: true,
+      },
+    ],
+    glbProps: [
+      { model: "bust", position: [3.55, 0.88, 2.35], scale: 1.02 },
+      { model: "vase", position: [-4.15, 0.32, -3.55], scale: 0.85 },
+      { model: "plant", position: [4.35, 0, 3.35], scale: 1.22, yaw: -0.35 },
+      { model: "plant", position: [-5.25, 0, -4.25], scale: 1.2, yaw: 0.7 },
+      { model: "plant", position: [4.35, 0, -4.25], scale: 1.18, yaw: 0.4 },
+      { model: "plinth_table", position: [-4.55, 0, 0.15], scale: 0.95, yaw: 0.2 },
+    ],
+    signs: [
+      {
+        text: "L-WING ATELIER",
+        subtitle: "Long run · east wing",
+        position: [-0.5, 2.95, -5.08],
+        yaw: 0,
+        width: 4.6,
+        height: 0.72,
+        style: "wall",
+      },
+    ],
   },
   walls: [
     // North run (full L breadth)

@@ -8,6 +8,7 @@ import { EditorApp } from "@/features/editor/components/editor-app";
 import { getAuthContext } from "@/infrastructure/firebase/auth-context";
 import { loadGalleryForEditor } from "@/infrastructure/galleries/load-gallery";
 import { getAdminDb } from "@/infrastructure/firebase/admin";
+import { loadWorkspaceUsage } from "@/infrastructure/workspaces/load-workspace-usage";
 import type { AssetListItem } from "@/infrastructure/firebase/assets-client";
 
 export const metadata: Metadata = {
@@ -17,14 +18,17 @@ export const metadata: Metadata = {
 
 export default async function GalleryEditorPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ galleryId: string }>;
+  searchParams: Promise<{ first?: string }>;
 }) {
   const ctx = await getAuthContext();
   if (!ctx?.account) redirect("/sign-in?force=1");
   if (!ctx.account.onboarding.completed) redirect("/onboarding");
 
   const { galleryId } = await params;
+  const { first } = await searchParams;
 
   let gallery: Gallery;
   let artworks: Artwork[];
@@ -67,12 +71,18 @@ export default async function GalleryEditorPage({
     };
   });
 
+  const usage = await loadWorkspaceUsage(gallery.workspaceId);
+
   return (
     <EditorApp
       gallery={gallery}
       template={template}
       artworks={artworks}
       assets={assets}
+      firstExhibition={first === "1"}
+      trialActive={usage?.trialActive ?? false}
+      trialDaysLeft={usage?.trialDaysLeft ?? 0}
+      plan={usage?.plan ?? "free"}
     />
   );
 }

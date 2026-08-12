@@ -42,6 +42,7 @@ export default async function DemoMaisonPage({
         walkHref="/demo/maison"
         catalogueHref="/demo/maison/catalogue"
         mockupRouteKind="demo"
+        useRoom={{ templateId: "maison-salon", title: "Maison Salon" }}
       />
     </>
   );

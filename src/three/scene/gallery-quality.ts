@@ -9,12 +9,19 @@ import type { TemplateCategory } from "@/core/entities";
  */
 export type GalleryQuality = "edit" | "walk" | "marketing" | "mobile";
 
-/** Soft floor reflections — museum / polished rooms only. */
+/** Soft floor polish — museum / haute rooms on walk & marketing. */
 const REFLECTIVE_CATEGORIES: ReadonlySet<TemplateCategory> = new Set([
   "museum",
   "luxury",
   "white",
   "atrium",
+  "coastal",
+  "zen",
+  "timber",
+  "black",
+  "night",
+  "loft",
+  "brutalist",
 ]);
 
 export function isWalkLikeQuality(quality: GalleryQuality): boolean {

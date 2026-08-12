@@ -15,13 +15,15 @@ import { z } from "zod";
 
 initializeApp();
 
-const PLAN_LIMITS_FREE = {
-  galleries: 3,
-  artworksPerGallery: 15,
-  storageBytes: 500 * 1024 * 1024,
+const PLAN_LIMITS_PRO = {
+  galleries: 10,
+  artworksPerGallery: 80,
+  storageBytes: 10 * 1024 * 1024 * 1024,
   customDomain: false,
-  seats: 1,
+  seats: 3,
 } as const;
+
+const PRO_TRIAL_DAYS = 14;
 
 const RESERVED = new Set([
   "dashboard",
@@ -116,11 +118,16 @@ export const bootstrapUser = onCall(async (request) => {
     tx.set(db.collection("workspaces").doc(workspaceId), {
       type: "artist",
       name: displayName,
-      plan: "free",
+      plan: "pro",
       ownerId: uid,
-      limits: PLAN_LIMITS_FREE,
+      limits: PLAN_LIMITS_PRO,
       usage: { galleries: 0, artworks: 0, storageBytes: 0 },
-      billing: null,
+      billing: {
+        stripeCustomerId: "",
+        subscriptionId: null,
+        status: "trialing",
+        periodEnd: new Date(Date.now() + PRO_TRIAL_DAYS * 24 * 60 * 60 * 1000),
+      },
       createdAt: now,
       updatedAt: now,
     });
