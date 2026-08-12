@@ -68,9 +68,14 @@ export function middleware(request: NextRequest) {
 
   const { locale, fromQuery } = resolveLocale(request);
 
-  const isProtected = PROTECTED_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-  );
+  // `/assets` is the studio library page. Public walk props live under
+  // `/assets/props|textures|hdri` and must stay anonymous (GLTF/HDR).
+  const isProtected = PROTECTED_PREFIXES.some((prefix) => {
+    if (prefix === "/assets") {
+      return pathname === "/assets" || pathname === "/assets/";
+    }
+    return pathname === prefix || pathname.startsWith(`${prefix}/`);
+  });
 
   if (isProtected && !hasSession) {
     const url = request.nextUrl.clone();
@@ -112,6 +117,6 @@ export const config = {
      * All app pages except static assets / Next internals.
      * Auth soft-gate still only applies to PROTECTED_PREFIXES above.
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|glb|hdr|bin)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|glb|gltf|hdr|bin)$).*)",
   ],
 };

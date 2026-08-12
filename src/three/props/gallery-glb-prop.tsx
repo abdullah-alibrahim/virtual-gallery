@@ -1,6 +1,12 @@
 "use client";
 
-import { Suspense, useEffect, useMemo } from "react";
+import {
+  Component,
+  Suspense,
+  useEffect,
+  useMemo,
+  type ReactNode,
+} from "react";
 import { useGLTF } from "@react-three/drei";
 import type { Group, Object3D } from "three";
 
@@ -34,18 +40,41 @@ export function GalleryGlbProp({
   receiveShadow?: boolean;
 }) {
   return (
-    <Suspense fallback={null}>
-      <GlbPropInner
-        model={model}
-        position={position}
-        yaw={yaw}
-        scale={scale}
-        fitSize={fitSize}
-        castShadow={castShadow}
-        receiveShadow={receiveShadow}
-      />
-    </Suspense>
+    <PropLoadBoundary>
+      <Suspense fallback={null}>
+        <GlbPropInner
+          model={model}
+          position={position}
+          yaw={yaw}
+          scale={scale}
+          fitSize={fitSize}
+          castShadow={castShadow}
+          receiveShadow={receiveShadow}
+        />
+      </Suspense>
+    </PropLoadBoundary>
   );
+}
+
+/** One missing prop must never blank the whole walk (auth gate / CDN miss). */
+class PropLoadBoundary extends Component<
+  { children: ReactNode },
+  { failed: boolean }
+> {
+  override state = { failed: false };
+
+  static getDerivedStateFromError(): { failed: boolean } {
+    return { failed: true };
+  }
+
+  override componentDidCatch(error: Error) {
+    console.warn("[gallery] prop failed to load", error.message);
+  }
+
+  override render() {
+    if (this.state.failed) return null;
+    return this.props.children;
+  }
 }
 
 function GlbPropInner({
