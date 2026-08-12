@@ -9,6 +9,7 @@ import { formatDimensions } from "@/core/value-objects/dimensions";
 import { formatMoney } from "@/core/value-objects/money";
 import { EnquiryForm } from "@/components/shared/enquiry-form";
 import { SocialLinks } from "@/components/shared/social-links";
+import { formatMuseumWallMeta } from "@/features/viewer/lib/museum-wall-label";
 import { usePrefersReducedMotion } from "@/hooks/use-media-query";
 import { useLocale, useT } from "@/i18n";
 import type { MessageKey } from "@/i18n/translate";
@@ -71,6 +72,7 @@ export function ArtworkDetailSheet({
   const socialLinks = resolveArtistSocialLinks(artistSocials, {
     galleryWebsite,
   });
+  const wallMeta = formatMuseumWallMeta(artwork.year, artwork.medium);
 
   useEffect(() => {
     panelRef.current?.focus();
@@ -115,7 +117,12 @@ export function ArtworkDetailSheet({
           </p>
           <p className="mt-1.5 text-sm text-white/60">
             {artistName}
-            {artwork.year ? ` · ${artwork.year}` : ""}
+            {wallMeta ? (
+              <>
+                <span className="mx-1.5 text-white/25">·</span>
+                {wallMeta}
+              </>
+            ) : null}
           </p>
         </div>
         <div className="flex shrink-0 gap-0.5">

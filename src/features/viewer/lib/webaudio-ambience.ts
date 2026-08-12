@@ -1,6 +1,8 @@
 /**
  * Soft WebAudio pads for night ambience and place sound (footsteps / room tone).
- * No external assets required — see `public/audio/README.md` if adding CC0 files.
+ * Procedural only — see `public/audio/README.md` if adding CC0 files later.
+ *
+ * Museum goal: barely-there hall hush + soft stone steps. Never a music bed.
  */
 
 type AmbienceKind = "night" | "room";
@@ -30,15 +32,59 @@ async function ensureRunning(ctx: AudioContext): Promise<void> {
   }
 }
 
+/** White noise (footstep grit). */
 function createNoiseBuffer(ctx: AudioContext, seconds = 2): AudioBuffer {
   const rate = ctx.sampleRate;
   const length = Math.floor(rate * seconds);
   const buffer = ctx.createBuffer(1, length, rate);
   const data = buffer.getChannelData(0);
   for (let i = 0; i < length; i++) {
-    data[i] = (Math.random() * 2 - 1) * 0.35;
+    data[i] = Math.random() * 2 - 1;
   }
   return buffer;
+}
+
+/** Soft 1/f-ish noise for large-room air (less harsh than white). */
+function createPinkNoiseBuffer(ctx: AudioContext, seconds = 4): AudioBuffer {
+  const rate = ctx.sampleRate;
+  const length = Math.floor(rate * seconds);
+  const buffer = ctx.createBuffer(1, length, rate);
+  const data = buffer.getChannelData(0);
+  let b0 = 0;
+  let b1 = 0;
+  let b2 = 0;
+  let b3 = 0;
+  let b4 = 0;
+  let b5 = 0;
+  let b6 = 0;
+  for (let i = 0; i < length; i++) {
+    const white = Math.random() * 2 - 1;
+    b0 = 0.99886 * b0 + white * 0.0555179;
+    b1 = 0.99332 * b1 + white * 0.0750759;
+    b2 = 0.969 * b2 + white * 0.153852;
+    b3 = 0.8665 * b3 + white * 0.3104856;
+    b4 = 0.55 * b4 + white * 0.5329522;
+    b5 = -0.7616 * b5 - white * 0.016898;
+    const pink =
+      b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+    b6 = white * 0.115926;
+    data[i] = pink * 0.11;
+  }
+  return buffer;
+}
+
+/**
+ * Step cadence from horizontal speed (metres per frame @ ~60fps).
+ * Slow stroll ≈ 520–580ms; brisk walk ≈ 380–420ms. Night walks a touch slower.
+ */
+export function footstepIntervalMs(
+  speedPerFrame: number,
+  nightLike = false,
+): number {
+  const approxMps = Math.min(2.4, Math.max(0, speedPerFrame * 60));
+  const base = 560 - approxMps * 70;
+  const nightBias = nightLike ? 40 : 0;
+  return Math.round(Math.min(620, Math.max(360, base + nightBias)));
 }
 
 export class GalleryAmbienceEngine {
@@ -46,11 +92,13 @@ export class GalleryAmbienceEngine {
   private roomGain: GainNode | null = null;
   private nightNodes: AudioNode[] = [];
   private roomNodes: AudioNode[] = [];
-  private footstepTimer: number | null = null;
   private muted = false;
   private nightOn = false;
   private placeOn = false;
   private lastStepAt = 0;
+  private stepSide = 1;
+  private noiseCache: AudioBuffer | null = null;
+  private pinkCache: AudioBuffer | null = null;
 
   async setMuted(muted: boolean): Promise<void> {
     this.muted = muted;
@@ -67,22 +115,32 @@ export class GalleryAmbienceEngine {
     await this.sync();
   }
 
-  /** Call from walk loop when horizontal motion is detected. */
-  noteMovement(isMoving: boolean): void {
+  /**
+   * Call from walk loop when horizontal motion is detected.
+   * `speedPerFrame` is metres moved this frame (horizontal).
+   */
+  noteMovement(isMoving: boolean, speedPerFrame = 0): void {
     if (!isMoving || this.muted || !this.placeOn) return;
     const now = performance.now();
-    if (now - this.lastStepAt < 420) return;
+    const gap = footstepIntervalMs(speedPerFrame, this.nightOn);
+    if (now - this.lastStepAt < gap) return;
     this.lastStepAt = now;
-    void this.playFootstep();
+    void this.playFootstep(speedPerFrame);
   }
 
   dispose(): void {
     this.stopKind("night");
     this.stopKind("room");
-    if (this.footstepTimer != null) {
-      window.clearTimeout(this.footstepTimer);
-      this.footstepTimer = null;
-    }
+  }
+
+  private noiseBuffer(ctx: AudioContext): AudioBuffer {
+    if (!this.noiseCache) this.noiseCache = createNoiseBuffer(ctx, 0.12);
+    return this.noiseCache;
+  }
+
+  private pinkBuffer(ctx: AudioContext): AudioBuffer {
+    if (!this.pinkCache) this.pinkCache = createPinkNoiseBuffer(ctx, 4);
+    return this.pinkCache;
   }
 
   private async sync(): Promise<void> {
@@ -99,19 +157,18 @@ export class GalleryAmbienceEngine {
     if (wantRoom && !this.roomGain) this.startRoom(ctx);
     if (!wantRoom) this.stopKind("room");
 
+    // Night pad: quieter hush, not a musical drone.
     if (this.nightGain) {
       this.nightGain.gain.setTargetAtTime(
-        wantNight ? 0.028 : 0,
+        wantNight ? 0.016 : 0,
         ctx.currentTime,
-        0.4,
+        0.55,
       );
     }
+    // Day/always room tone: barely audible stone-hall air.
     if (this.roomGain) {
-      this.roomGain.gain.setTargetAtTime(
-        wantRoom ? 0.012 : 0,
-        ctx.currentTime,
-        0.35,
-      );
+      const level = wantRoom ? (this.nightOn ? 0.007 : 0.009) : 0;
+      this.roomGain.gain.setTargetAtTime(level, ctx.currentTime, 0.45);
     }
   }
 
@@ -120,35 +177,32 @@ export class GalleryAmbienceEngine {
     master.gain.value = 0;
     master.connect(ctx.destination);
 
-    const oscA = ctx.createOscillator();
-    oscA.type = "sine";
-    oscA.frequency.value = 110;
-    const oscB = ctx.createOscillator();
-    oscB.type = "sine";
-    oscB.frequency.value = 164.81;
-    const oscC = ctx.createOscillator();
-    oscC.type = "triangle";
-    oscC.frequency.value = 55;
+    // Soft low rumble — filtered noise, not harmonic fifths.
+    const noise = ctx.createBufferSource();
+    noise.buffer = this.pinkBuffer(ctx);
+    noise.loop = true;
 
-    const filter = ctx.createBiquadFilter();
-    filter.type = "lowpass";
-    filter.frequency.value = 420;
-    filter.Q.value = 0.7;
+    const low = ctx.createBiquadFilter();
+    low.type = "lowpass";
+    low.frequency.value = 160;
+    low.Q.value = 0.55;
+
+    const mid = ctx.createBiquadFilter();
+    mid.type = "bandpass";
+    mid.frequency.value = 90;
+    mid.Q.value = 0.6;
 
     const mix = ctx.createGain();
-    mix.gain.value = 0.45;
-    oscA.connect(mix);
-    oscB.connect(mix);
-    oscC.connect(mix);
-    mix.connect(filter);
-    filter.connect(master);
+    mix.gain.value = 0.55;
 
-    oscA.start();
-    oscB.start();
-    oscC.start();
+    noise.connect(low);
+    low.connect(mid);
+    mid.connect(mix);
+    mix.connect(master);
+    noise.start();
 
     this.nightGain = master;
-    this.nightNodes = [oscA, oscB, oscC, mix, filter, master];
+    this.nightNodes = [noise, low, mid, mix, master];
   }
 
   private startRoom(ctx: AudioContext): void {
@@ -157,27 +211,37 @@ export class GalleryAmbienceEngine {
     master.connect(ctx.destination);
 
     const noise = ctx.createBufferSource();
-    noise.buffer = createNoiseBuffer(ctx, 3);
+    noise.buffer = this.pinkBuffer(ctx);
     noise.loop = true;
 
-    const filter = ctx.createBiquadFilter();
-    filter.type = "lowpass";
-    filter.frequency.value = 280;
-    filter.Q.value = 0.5;
+    // Wide, dark hall air — cut highs hard so it never hiss-sings.
+    const low = ctx.createBiquadFilter();
+    low.type = "lowpass";
+    low.frequency.value = 220;
+    low.Q.value = 0.45;
 
-    noise.connect(filter);
-    filter.connect(master);
+    const highcut = ctx.createBiquadFilter();
+    highcut.type = "lowshelf";
+    highcut.frequency.value = 90;
+    highcut.gain.value = 3;
+
+    noise.connect(highcut);
+    highcut.connect(low);
+    low.connect(master);
     noise.start();
 
     this.roomGain = master;
-    this.roomNodes = [noise, filter, master];
+    this.roomNodes = [noise, highcut, low, master];
   }
 
   private stopKind(kind: AmbienceKind): void {
     const nodes = kind === "night" ? this.nightNodes : this.roomNodes;
     for (const node of nodes) {
       try {
-        if ("stop" in node && typeof (node as OscillatorNode).stop === "function") {
+        if (
+          "stop" in node &&
+          typeof (node as OscillatorNode).stop === "function"
+        ) {
           (node as OscillatorNode).stop();
         }
         node.disconnect();
@@ -194,39 +258,56 @@ export class GalleryAmbienceEngine {
     }
   }
 
-  private async playFootstep(): Promise<void> {
+  private async playFootstep(speedPerFrame: number): Promise<void> {
     const ctx = getCtx();
     if (!ctx || this.muted || !this.placeOn) return;
     await ensureRunning(ctx);
 
     const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(90 + Math.random() * 40, now);
-    osc.frequency.exponentialRampToValueAtTime(42, now + 0.09);
+    const night = this.nightOn;
+    const speed = Math.min(2.2, Math.max(0.2, speedPerFrame * 60));
+    // Quieter overall; night even softer. Peak stays under museum-whisper.
+    const peak = (night ? 0.0075 : 0.01) * (0.75 + speed * 0.12);
 
-    const noise = ctx.createBufferSource();
-    noise.buffer = createNoiseBuffer(ctx, 0.08);
+    // Soft stone thump (very short, low).
+    const thump = ctx.createOscillator();
+    thump.type = "sine";
+    thump.frequency.setValueAtTime(68 + Math.random() * 18, now);
+    thump.frequency.exponentialRampToValueAtTime(36, now + 0.07);
 
-    const filter = ctx.createBiquadFilter();
-    filter.type = "bandpass";
-    filter.frequency.value = 180;
-    filter.Q.value = 0.8;
+    // Shoe grit on stone — brief noise burst.
+    const grit = ctx.createBufferSource();
+    grit.buffer = this.noiseBuffer(ctx);
+
+    const band = ctx.createBiquadFilter();
+    band.type = "bandpass";
+    band.frequency.value = night ? 140 : 165;
+    band.Q.value = 0.7;
+
+    const low = ctx.createBiquadFilter();
+    low.type = "lowpass";
+    low.frequency.value = 380;
+
+    const pan = ctx.createStereoPanner();
+    this.stepSide *= -1;
+    pan.pan.setValueAtTime(this.stepSide * (0.18 + Math.random() * 0.12), now);
 
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.018, now + 0.012);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+    gain.gain.exponentialRampToValueAtTime(peak, now + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.11);
 
-    osc.connect(filter);
-    noise.connect(filter);
-    filter.connect(gain);
+    thump.connect(low);
+    grit.connect(band);
+    band.connect(low);
+    low.connect(pan);
+    pan.connect(gain);
     gain.connect(ctx.destination);
 
-    osc.start(now);
-    noise.start(now);
-    osc.stop(now + 0.14);
-    noise.stop(now + 0.14);
+    thump.start(now);
+    grit.start(now);
+    thump.stop(now + 0.12);
+    grit.stop(now + 0.12);
   }
 }
 

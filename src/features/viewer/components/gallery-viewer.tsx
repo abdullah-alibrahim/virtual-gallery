@@ -57,9 +57,14 @@ import {
   type EveningTourAccess,
 } from "@/features/viewer/lib/evening-tour";
 import {
-  readNightModePreference,
+  readDaylightPreference,
+  writeDaylightPreference,
+  nextDaylightPeriod,
+  isNightLikePeriod,
+  type DaylightPeriod,
+} from "@/features/viewer/lib/daylight";
+import {
   readPlaceSoundPreference,
-  writeNightModePreference,
   writePlaceSoundPreference,
 } from "@/features/viewer/lib/visitor-preferences";
 import { getGalleryAmbienceEngine } from "@/features/viewer/lib/webaudio-ambience";
@@ -104,6 +109,7 @@ export function GalleryViewer({
   const titleId = useId();
   const [ready, setReady] = useState(false);
   const [entered, setEntered] = useState(() => Boolean(initialArtworkId));
+  const [pendingEnter, setPendingEnter] = useState(false);
   const [mode, setMode] = useState<ViewerMode>(initialMode);
   const [selectedId, setSelectedId] = useState<string | null>(
     initialArtworkId,
@@ -115,7 +121,7 @@ export function GalleryViewer({
   const [aboutOpen, setAboutOpen] = useState(false);
   const [tourActive, setTourActive] = useState(false);
   const [collectorMode, setCollectorMode] = useState(false);
-  const [nightMode, setNightMode] = useState(false);
+  const [daylight, setDaylight] = useState<DaylightPeriod>("morning");
   const [soundMuted, setSoundMuted] = useState(false);
   const [placeSoundOn, setPlaceSoundOn] = useState(true);
   const [innerWorldOpen, setInnerWorldOpen] = useState(false);
@@ -137,6 +143,8 @@ export function GalleryViewer({
   const hasStatement = Boolean(manifest.description?.trim());
   const eveningTour = manifest.settings.eveningTour ?? null;
   const isDemoGallery = manifest.galleryId.startsWith("demo-");
+
+  const nightLike = isNightLikePeriod(daylight);
 
   const eveningAccess: EveningTourAccess = useMemo(() => {
     if (eveningSimulate && eveningTour?.enabled) {
@@ -189,8 +197,8 @@ export function GalleryViewer({
       if (window.localStorage.getItem(COLLECTOR_KEY) === "1") {
         setCollectorMode(true);
       }
-      const nightPref = readNightModePreference(manifest.galleryId);
-      if (nightPref != null) setNightMode(nightPref);
+      const daylightPref = readDaylightPreference(manifest.galleryId);
+      if (daylightPref != null) setDaylight(daylightPref);
       const soundPref = readPlaceSoundPreference(manifest.galleryId);
       if (soundPref === "muted") {
         setSoundMuted(true);
@@ -206,20 +214,41 @@ export function GalleryViewer({
   }, [manifest.galleryId]);
 
   useEffect(() => {
+    const arch = manifest.template.architecture;
+    if (arch?.glbProps?.length || arch?.benches?.some((b) => b.glb)) {
+      preloadGalleryProps(FLAGSHIP_PROP_PRELOAD);
+    }
+    // Warm first canvases while the enter panel is open.
+    for (const artwork of manifest.artworks.slice(0, 10)) {
+      const src = artwork.textures.lod1 || artwork.textures.lod0;
+      if (!src || typeof window === "undefined") continue;
+      const img = new window.Image();
+      img.decoding = "async";
+      img.src = src;
+    }
+  }, [manifest]);
+
+  useEffect(() => {
+    if (!pendingEnter || !ready || entered) return;
+    setEntered(true);
+    setPendingEnter(false);
+  }, [pendingEnter, ready, entered]);
+
+  useEffect(() => {
     if (!entered) return;
     const engine = getGalleryAmbienceEngine();
     void engine.setMuted(soundMuted || reduceMotion);
-    void engine.setNightAmbience(nightMode && !soundMuted && !reduceMotion);
+    void engine.setNightAmbience(nightLike && !soundMuted && !reduceMotion);
     void engine.setPlaceSound(placeSoundOn && !soundMuted && !reduceMotion);
-  }, [entered, nightMode, placeSoundOn, reduceMotion, soundMuted]);
+  }, [entered, nightLike, placeSoundOn, reduceMotion, soundMuted]);
 
   useEffect(() => {
     if (!entered) return;
     if (eveningAccess.status !== "open") return;
-    const pref = readNightModePreference(manifest.galleryId);
+    const pref = readDaylightPreference(manifest.galleryId);
     if (pref == null) {
-      setNightMode(true);
-      writeNightModePreference(manifest.galleryId, true);
+      setDaylight("evening");
+      writeDaylightPreference(manifest.galleryId, "evening");
     }
   }, [entered, eveningAccess.status, manifest.galleryId]);
 
@@ -287,11 +316,19 @@ export function GalleryViewer({
     });
   }, [t]);
 
-  const toggleNightMode = useCallback(() => {
-    setNightMode((prev) => {
-      const next = !prev;
-      writeNightModePreference(manifest.galleryId, next);
-      toast.message(next ? t("walk.nightModeOn") : t("walk.dayModeOn"));
+  const cycleDaylight = useCallback(() => {
+    setDaylight((prev) => {
+      const next = nextDaylightPeriod(prev);
+      writeDaylightPreference(manifest.galleryId, next);
+      const toastKey =
+        next === "morning"
+          ? "walk.morningOn"
+          : next === "noon"
+            ? "walk.noonOn"
+            : next === "evening"
+              ? "walk.eveningOn"
+              : "walk.nightOn";
+      toast.message(t(toastKey));
       return next;
     });
   }, [manifest.galleryId, t]);
@@ -311,10 +348,10 @@ export function GalleryViewer({
   }, [manifest.galleryId, t]);
 
   const enterEvening = useCallback(() => {
-    setNightMode(true);
-    writeNightModePreference(manifest.galleryId, true);
+    setDaylight("evening");
+    writeDaylightPreference(manifest.galleryId, "evening");
     setEveningBannerDismissed(true);
-    toast.message(t("walk.nightModeOn"));
+    toast.message(t("walk.eveningOn"));
   }, [manifest.galleryId, t]);
 
   const enterRoom = useCallback(() => {
@@ -322,8 +359,13 @@ export function GalleryViewer({
     if (arch?.glbProps?.length || arch?.benches?.some((b) => b.glb)) {
       preloadGalleryProps(FLAGSHIP_PROP_PRELOAD);
     }
-    setEntered(true);
-  }, [manifest.template.architecture]);
+    if (ready) {
+      setEntered(true);
+      setPendingEnter(false);
+      return;
+    }
+    setPendingEnter(true);
+  }, [manifest.template.architecture, ready]);
 
   const startTour = useCallback(() => {
     setTourActive(true);
@@ -375,7 +417,9 @@ export function GalleryViewer({
   }
 
   const showDetailSheet = selected && entered && !collectorMode;
-  const showWallLabel = Boolean(selected && entered && collectorMode);
+  const showWallLabel = Boolean(
+    selected && entered && !shareOpen && !aboutOpen,
+  );
   return (
     <div
       className="viewer-root relative isolate min-h-dvh w-full overflow-hidden bg-[#0a0908] text-[color:var(--viewer-foreground)]"
@@ -388,51 +432,52 @@ export function GalleryViewer({
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_28%_18%,oklch(0.26_0.035_75_/0.4),transparent_55%),radial-gradient(ellipse_at_82%_88%,oklch(0.2_0.02_55_/0.3),transparent_50%)]"
       />
 
-      {!entered || !ready ? (
+      {!ready ? (
         <LoadingShell manifest={manifest} reduceMotion={reduceMotion} />
       ) : null}
 
-      {entered ? (
-        <div
-          className={cn(
-            "absolute inset-0 transition-opacity duration-700 ease-out",
-            ready ? "opacity-100" : "opacity-0",
+      <div
+        className={cn(
+          "absolute inset-0 transition-opacity duration-700 ease-out",
+          ready ? "opacity-100" : "opacity-0",
+        )}
+        style={{
+          backgroundColor: manifest.template.environment.background,
+          // Keep WebGL warm under the enter panel; lock input until entry.
+          pointerEvents: entered ? "auto" : "none",
+        }}
+        aria-hidden={!entered}
+      >
+        <ErrorBoundary
+          fallback={() => (
+            <div
+              className="flex size-full min-h-dvh items-end p-6 sm:p-10"
+              style={{
+                backgroundColor: manifest.template.environment.background,
+              }}
+            >
+              <p className="max-w-sm text-sm text-muted-foreground">
+                {t("walk.walkFailed")}
+              </p>
+            </div>
           )}
-          style={{
-            backgroundColor: manifest.template.environment.background,
-          }}
         >
-          <ErrorBoundary
-            fallback={() => (
-              <div
-                className="flex size-full min-h-dvh items-end p-6 sm:p-10"
-                style={{
-                  backgroundColor: manifest.template.environment.background,
-                }}
-              >
-                <p className="max-w-sm text-sm text-muted-foreground">
-                  {t("walk.walkFailed")}
-                </p>
-              </div>
-            )}
-          >
-            <SceneRoot
-              manifest={manifest}
-              walkEnabled={walkEnabled}
-              mobile={mobile}
-              reducedMotion={reduceMotion}
-              eveningMode={nightMode}
-              placeSoundEnabled={placeSoundOn && entered}
-              soundMuted={soundMuted || reduceMotion}
-              visitorShadow={entered && !collectorMode}
-              selectedArtworkId={selectedId}
-              onSelectArtwork={selectArtwork}
-              className="size-full min-h-dvh"
-              onReady={() => setReady(true)}
-            />
-          </ErrorBoundary>
-        </div>
-      ) : null}
+          <SceneRoot
+            manifest={manifest}
+            walkEnabled={Boolean(walkEnabled && entered)}
+            mobile={mobile}
+            reducedMotion={reduceMotion}
+            daylight={daylight}
+            placeSoundEnabled={placeSoundOn && entered}
+            soundMuted={soundMuted || reduceMotion}
+            visitorShadow={entered && !collectorMode}
+            selectedArtworkId={entered ? selectedId : null}
+            onSelectArtwork={entered ? selectArtwork : undefined}
+            className="size-full min-h-dvh"
+            onReady={() => setReady(true)}
+          />
+        </ErrorBoundary>
+      </div>
 
       <header
         className={cn(
@@ -540,9 +585,9 @@ export function GalleryViewer({
               )}
             >
               <WalkAtmosphereControls
-                nightMode={nightMode}
+                daylight={daylight}
                 soundMuted={soundMuted}
-                onToggleNight={toggleNightMode}
+                onCycleDaylight={cycleDaylight}
                 onToggleSound={toggleSound}
               />
               {isDemoGallery && eveningTour?.enabled ? (
@@ -552,8 +597,8 @@ export function GalleryViewer({
                     setEveningSimulate((v) => !v);
                     setEveningBannerDismissed(false);
                     if (!eveningSimulate) {
-                      setNightMode(true);
-                      writeNightModePreference(manifest.galleryId, true);
+                      setDaylight("evening");
+                      writeDaylightPreference(manifest.galleryId, "evening");
                     }
                   }}
                   className="text-[10px] tracking-wide text-white/40 underline-offset-4 hover:text-white/70 hover:underline"
@@ -589,7 +634,12 @@ export function GalleryViewer({
       </header>
 
       {!entered ? (
-        <div className="absolute inset-0 z-[25] flex items-end justify-center pb-[max(5rem,calc(env(safe-area-inset-bottom)+4rem))] md:items-center md:pb-0">
+        <div
+          className={cn(
+            "absolute inset-0 z-[25] flex items-end justify-center pb-[max(5rem,calc(env(safe-area-inset-bottom)+4rem))] md:items-center md:pb-0",
+            ready && "bg-black/35 transition-colors duration-700",
+          )}
+        >
           <div
             className={cn(
               "mx-4 w-full max-w-md border border-white/[0.11] bg-black/65 px-7 py-7 text-center backdrop-blur-xl",
@@ -601,7 +651,7 @@ export function GalleryViewer({
               className="mx-auto mb-4 h-px w-10 bg-[color:var(--viewer-brass)]/50"
             />
             <p className="text-[10px] tracking-[0.22em] text-white/40 uppercase">
-              {t("walk.pleaseEnter")}
+              {ready ? t("walk.hallReady") : t("walk.preparingEnter")}
             </p>
             <p className="mt-2.5 font-serif text-3xl tracking-tight text-balance">
               {manifest.title}
@@ -621,22 +671,49 @@ export function GalleryViewer({
               </p>
             )}
             <p className="mt-3 text-[11px] tracking-wide text-white/40">
-              {mobile
-                ? t("walk.mobileHint")
-                : t("walk.desktopHint")}
+              {pendingEnter && !ready
+                ? t("walk.openingWhenReady")
+                : mobile
+                  ? t("walk.mobileHint")
+                  : t("walk.desktopHint")}
             </p>
+            <div
+              aria-hidden
+              className="mx-auto mt-5 h-[2px] w-full max-w-[12rem] overflow-hidden bg-white/10"
+            >
+              <div
+                className={cn(
+                  "h-full bg-[color:var(--viewer-brass)]/70 transition-[width] duration-700 ease-out",
+                  ready ? "w-full" : !reduceMotion && "viewer-load-line w-2/5",
+                  ready || reduceMotion ? "" : "animate-pulse",
+                )}
+                style={ready ? { width: "100%" } : undefined}
+              />
+            </div>
             <button
               type="button"
               onClick={enterRoom}
-              className="mt-6 w-full border border-white/20 bg-white/95 py-3 text-sm font-medium tracking-wide text-neutral-900 transition-colors hover:bg-white"
+              disabled={pendingEnter && !ready}
+              className={cn(
+                "mt-6 w-full border py-3 text-sm font-medium tracking-wide transition-colors",
+                ready
+                  ? "border-white/20 bg-white/95 text-neutral-900 hover:bg-white"
+                  : "border-white/12 bg-white/[0.08] text-white/80 hover:bg-white/12",
+                pendingEnter && !ready && "cursor-wait opacity-80",
+              )}
             >
-              {t("walk.enter")}
+              {pendingEnter && !ready
+                ? t("walk.openingWhenReady")
+                : ready
+                  ? t("walk.enter")
+                  : t("walk.preparingEnter")}
             </button>
             {workCount >= 2 ? (
               <button
                 type="button"
                 onClick={startTour}
-                className="mt-2 w-full border border-white/12 bg-white/[0.04] py-2.5 text-sm text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                disabled={!ready && pendingEnter}
+                className="mt-2 w-full border border-white/12 bg-white/[0.04] py-2.5 text-sm text-white/75 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
               >
                 {t("walk.beginTour")}
               </button>
@@ -692,9 +769,8 @@ export function GalleryViewer({
         >
           <WallLabel
             artwork={selected}
-            artistName={manifest.artist.displayName}
             enlarged={collectorMode}
-            className="max-w-sm"
+            className="max-w-xs"
           />
         </div>
       ) : null}
@@ -749,7 +825,7 @@ export function GalleryViewer({
             access={eveningAccess}
             tour={eveningTour}
             sharePath={shareBasePath}
-            nightMode={nightMode}
+            nightMode={nightLike}
             onEnterEvening={enterEvening}
             onDismiss={() => setEveningBannerDismissed(true)}
             showSimulate={isDemoGallery}

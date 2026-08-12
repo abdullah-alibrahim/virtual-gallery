@@ -11,12 +11,11 @@ import {
   ISMAIL_BOAT_WORKS,
   ISMAIL_EMAIL,
   ISMAIL_HALL_WORKS,
-  ISMAIL_SECTIONS,
   ISMAIL_SLUG,
   getIsmailRifaiStaticProfile,
-  ismailSectionOf,
-  ismailTextureUrl,
   ismailMediumLocalized,
+  ismailTextureUrl,
+  type IsmailWork,
 } from "@/core/samples/ismail-rifai";
 import type { ArtistProfile, UserAccount } from "@/core/entities";
 import { NotFoundError } from "@/core/errors";
@@ -32,6 +31,18 @@ import { resolveArtistSocialLinks } from "@/lib/social-urls";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+/** Featured catalogue entries — quiet selection, not a thumbnail grid. */
+const ISMAIL_CATALOGUE_PICKS = [
+  "01",
+  "04",
+  "07",
+  "10",
+  "12",
+  "boat-01",
+  "boat-03",
+  "13",
+] as const;
 
 async function resolveProfile(slug: string): Promise<{
   profile: ArtistProfile;
@@ -122,6 +133,19 @@ export default async function ArtistProfilePage({
     ? ISMAIL_HALL_WORKS.length + ISMAIL_BOAT_WORKS.length
     : galleries.reduce((sum, gallery) => sum + gallery.artworkCount, 0);
 
+  const heroSrc =
+    profile.coverUrl ||
+    galleries[0]?.coverThumbUrl ||
+    (isIsmail ? ismailTextureUrl("01.jpg") : null);
+  const primaryWalk =
+    galleries[0]?.href ??
+    (galleries[0]
+      ? `/g/${galleries[0].slug}`
+      : isIsmail
+        ? "/demo/ismail"
+        : null);
+  const catalogueWorks = isIsmail ? pickIsmailCatalogue() : [];
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
@@ -136,194 +160,182 @@ export default async function ArtistProfilePage({
   };
 
   return (
-    <main className="relative min-h-dvh overflow-x-hidden bg-[oklch(0.13_0.012_70)] text-[oklch(0.96_0.01_95)]">
+    <main className="relative min-h-dvh overflow-x-hidden bg-[oklch(0.11_0.01_70)] text-[oklch(0.96_0.01_95)]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="relative">
-        <div className="relative h-[38vh] min-h-[14rem] w-full overflow-hidden sm:h-[46vh] lg:h-[52vh]">
-          {profile.coverUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- local / Storage URLs
-            <img
-              src={profile.coverUrl}
-              alt=""
-              className="size-full scale-[1.02] object-cover object-[center_62%]"
-            />
-          ) : (
-            <div
-              aria-hidden
-              className="size-full bg-[radial-gradient(ellipse_at_20%_0%,oklch(0.28_0.04_55_/_0.55),transparent_55%),radial-gradient(ellipse_at_90%_20%,oklch(0.22_0.03_240_/_0.35),transparent_45%),linear-gradient(160deg,oklch(0.18_0.02_70),oklch(0.12_0.02_240))]"
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.13_0.012_70)] via-[oklch(0.13_0.012_70_/_0.55)] to-black/25" />
-          <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-            <Link
-              href="/"
-              className="font-serif text-sm tracking-tight text-white/70 transition-colors hover:text-white"
-            >
-              {siteConfig.name}
-            </Link>
-            <div className="flex items-center gap-2">
-              <LanguageSwitcher variant="ghost" />
-              {canEditProfile ? (
-                <Link
-                  href="/settings/profile"
-                  className={cn(
-                    buttonVariants({ variant: "secondary", size: "sm" }),
-                    "border-white/20 bg-black/30 text-white backdrop-blur-sm hover:bg-black/45",
-                  )}
-                >
-                  {arabic ? "تعديل الملف" : "Edit profile"}
-                </Link>
-              ) : null}
-            </div>
+      {/* Full-bleed catalogue hero — one work dominates the first viewport */}
+      <section className="relative isolate min-h-[100svh] w-full">
+        {heroSrc ? (
+          // eslint-disable-next-line @next/next/no-img-element -- local / Storage URLs
+          <img
+            src={heroSrc}
+            alt=""
+            className="absolute inset-0 size-full object-cover object-center"
+          />
+        ) : (
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_10%,oklch(0.26_0.03_55_/_0.5),transparent_50%),linear-gradient(165deg,oklch(0.17_0.02_70),oklch(0.1_0.015_240))]"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.11_0.01_70)] via-[oklch(0.11_0.01_70_/_0.45)] to-black/35" />
+
+        <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 py-4 sm:px-6 lg:px-10">
+          <Link
+            href="/"
+            className="font-serif text-sm tracking-tight text-white/75 transition-colors hover:text-white"
+          >
+            {siteConfig.name}
+          </Link>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher variant="ghost" />
+            {canEditProfile ? (
+              <Link
+                href="/settings/profile"
+                className={cn(
+                  buttonVariants({ variant: "secondary", size: "sm" }),
+                  "border-white/20 bg-black/30 text-white backdrop-blur-sm hover:bg-black/45",
+                )}
+              >
+                {arabic ? "تعديل الملف" : "Edit profile"}
+              </Link>
+            ) : null}
           </div>
         </div>
 
-        <div className="relative mx-auto -mt-16 w-full max-w-6xl px-4 pb-16 sm:-mt-20 sm:px-6 md:pb-24 lg:px-8">
-          <header className="page-enter flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-end">
-              {profile.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element -- local / Storage URLs
-                <img
-                  src={profile.avatarUrl}
-                  alt={displayName}
-                  className="size-32 shrink-0 rounded-sm border border-white/25 object-cover object-center shadow-[0_24px_60px_-28px_black] sm:size-40"
-                />
-              ) : null}
-              <div className="max-w-2xl pb-1">
-                <p className="text-[11px] tracking-[0.22em] text-white/45 uppercase">
-                  {arabic ? "فنان" : "Artist"}
-                  {location ? ` · ${location}` : null}
-                </p>
-                <h1 className="mt-2 font-serif text-4xl tracking-tight sm:text-5xl md:text-6xl">
-                  {displayName}
-                </h1>
-                {bio ? (
-                  <p className="mt-4 max-w-xl text-base leading-relaxed text-white/70">
-                    {bio}
-                  </p>
-                ) : null}
-                <dl className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-[11px] tracking-[0.14em] text-white/45 uppercase">
-                  <div>
-                    <dt className="sr-only">
-                      {arabic ? "المعارض" : "Exhibitions"}
-                    </dt>
-                    <dd>
-                      {galleries.length}{" "}
-                      {arabic
-                        ? galleries.length === 1
-                          ? "معرض"
-                          : "معارض"
-                        : galleries.length === 1
-                          ? "exhibition"
-                          : "exhibitions"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="sr-only">{arabic ? "الأعمال" : "Works"}</dt>
-                    <dd>
-                      {workCount}{" "}
-                      {arabic
-                        ? workCount === 1
-                          ? "عمل"
-                          : "أعمال"
-                        : workCount === 1
-                          ? "work"
-                          : "works"}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-
-            <div className="flex flex-col items-start gap-3 stagger-fade stagger-fade-1 lg:items-end">
-              <SocialLinks
-                links={socialLinks}
-                tone="onDark"
-                layout="pills"
-                label={arabic ? "التواصل الاجتماعي" : "Social links"}
-              />
-              {isIsmail ? (
-                <div className="flex flex-wrap gap-2">
-                  <Link
-                    href="/demo/ismail"
-                    className={cn(
-                      buttonVariants({ size: "sm" }),
-                      "border-white/20 bg-white text-[oklch(0.16_0.02_70)] hover:bg-white/90",
-                    )}
-                  >
-                    {arabic ? "ادخل القاعة" : "Enter the hall"}
-                  </Link>
-                  <Link
-                    href="/demo/ismail/boats"
-                    className={cn(
-                      buttonVariants({ variant: "secondary", size: "sm" }),
-                      "border-white/20 bg-white/10 text-white hover:bg-white/15",
-                    )}
-                  >
-                    {arabic ? "مراكب" : "Marakeb"}
-                  </Link>
-                </div>
-              ) : null}
-            </div>
-          </header>
-
-          {statement ? (
-            <section className="mt-14 max-w-2xl border-s border-[oklch(0.72_0.05_78_/_0.45)] ps-5 section-rise">
-              <h2 className="text-[11px] tracking-[0.2em] text-white/40 uppercase">
-                {arabic ? "بيان" : "Statement"}
-              </h2>
-              <p className="mt-3 font-serif text-lg leading-relaxed text-white/82 sm:text-xl">
-                {statement}
+        <div className="relative z-10 flex min-h-[100svh] flex-col justify-end px-4 pb-14 pt-28 sm:px-6 sm:pb-20 lg:px-10">
+          <div className="mx-auto w-full max-w-5xl">
+            <p className="text-[11px] tracking-[0.22em] text-white/50 uppercase">
+              {arabic ? "فنان" : "Artist"}
+              {location ? ` · ${location}` : null}
+            </p>
+            <h1 className="mt-3 max-w-3xl font-serif text-5xl tracking-tight text-balance sm:text-6xl md:text-7xl lg:text-8xl">
+              {displayName}
+            </h1>
+            {bio ? (
+              <p className="mt-5 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">
+                {bio}
               </p>
-            </section>
-          ) : null}
-
-          <section className="mt-16 flex flex-col gap-6">
-            <div className="flex items-end justify-between gap-4">
-              <h2 className="font-serif text-3xl tracking-tight">
-                {arabic ? "المعارض" : "Exhibitions"}
-              </h2>
-            </div>
-            {galleries.length === 0 ? (
-              <div className="relative flex flex-col items-center gap-4 overflow-hidden border border-dashed border-white/15 px-6 py-16 text-center">
-                <p className="font-serif text-xl tracking-tight text-white/85">
-                  {arabic ? "لا معارض منشورة بعد" : "No published galleries yet"}
-                </p>
+            ) : null}
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              {primaryWalk ? (
                 <Link
-                  href="/demo/pro"
+                  href={primaryWalk}
                   className={cn(
-                    buttonVariants({ variant: "secondary", size: "sm" }),
-                    "border-white/20 bg-white/10 text-white hover:bg-white/15",
+                    buttonVariants({ size: "lg" }),
+                    "border-white/15 bg-white text-[oklch(0.14_0.015_70)] hover:bg-white/90",
                   )}
                 >
-                  {arabic ? "جرّب قاعة البرو" : "Try the Pro hall"}
+                  {arabic ? "ادخل القاعة" : "Enter the hall"}
                 </Link>
-              </div>
-            ) : (
-              <ul className="grid gap-5 sm:grid-cols-2">
-                {galleries.map((gallery, index) => (
-                  <li
-                    key={gallery.id}
-                    className={cn(
-                      "stagger-fade",
-                      index === 1 && "stagger-fade-1",
-                    )}
-                  >
+              ) : null}
+              {isIsmail ? (
+                <Link
+                  href="/demo/ismail/boats"
+                  className="px-1 text-sm tracking-wide text-white/55 underline-offset-4 transition-colors hover:text-white hover:underline"
+                >
+                  {arabic ? "مراكب" : "Marakeb"}
+                </Link>
+              ) : null}
+            </div>
+            <p className="mt-8 text-[11px] tracking-[0.16em] text-white/40 uppercase">
+              {galleries.length}{" "}
+              {arabic
+                ? galleries.length === 1
+                  ? "معرض"
+                  : "معارض"
+                : galleries.length === 1
+                  ? "exhibition"
+                  : "exhibitions"}
+              <span className="mx-2 text-white/20">·</span>
+              {workCount}{" "}
+              {arabic
+                ? workCount === 1
+                  ? "عمل"
+                  : "أعمال"
+                : workCount === 1
+                  ? "work"
+                  : "works"}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div className="relative mx-auto w-full max-w-5xl px-4 py-16 sm:px-6 md:py-24 lg:px-10">
+        <header className="flex flex-col gap-8 border-b border-white/10 pb-12 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex items-end gap-5">
+            {profile.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- local / Storage URLs
+              <img
+                src={profile.avatarUrl}
+                alt={displayName}
+                className="size-20 shrink-0 object-cover object-center sm:size-24"
+              />
+            ) : null}
+            <div>
+              <p className="text-[11px] tracking-[0.2em] text-white/40 uppercase">
+                {arabic ? "ملف الفنان" : "Artist profile"}
+              </p>
+              <p className="mt-2 max-w-md font-serif text-2xl tracking-tight text-white/90 sm:text-3xl">
+                {arabic
+                  ? "معارض يمكن التجوّل فيها، بمقياس الكتالوج."
+                  : "Walkable exhibitions, at catalogue scale."}
+              </p>
+            </div>
+          </div>
+          <SocialLinks
+            links={socialLinks}
+            tone="onDark"
+            layout="pills"
+            label={arabic ? "التواصل الاجتماعي" : "Social links"}
+          />
+        </header>
+
+        {statement ? (
+          <section className="mt-16 max-w-2xl">
+            <h2 className="text-[11px] tracking-[0.2em] text-white/40 uppercase">
+              {arabic ? "بيان" : "Statement"}
+            </h2>
+            <p className="mt-4 font-serif text-xl leading-relaxed text-white/85 sm:text-2xl">
+              {statement}
+            </p>
+          </section>
+        ) : null}
+
+        <section className="mt-20">
+          <h2 className="font-serif text-3xl tracking-tight sm:text-4xl">
+            {arabic ? "المعارض" : "Exhibitions"}
+          </h2>
+          {galleries.length === 0 ? (
+            <p className="mt-8 font-serif text-xl text-white/70">
+              {arabic ? "لا معارض منشورة بعد" : "No published galleries yet"}
+            </p>
+          ) : (
+            <ul className="mt-10 divide-y divide-white/10 border-y border-white/10">
+              {galleries.map((gallery) => {
+                const href = gallery.href ?? `/g/${gallery.slug}`;
+                const title =
+                  arabic && isIsmail
+                    ? gallery.id.includes("boats")
+                      ? "مراكب"
+                      : "القاعة"
+                    : gallery.title;
+                return (
+                  <li key={gallery.id}>
                     <Link
-                      href={gallery.href ?? `/g/${gallery.slug}`}
-                      className="group relative block overflow-hidden border border-white/10 bg-white/[0.03] transition-colors hover:border-white/30"
+                      href={href}
+                      className="group grid gap-6 py-8 transition-colors sm:grid-cols-[minmax(0,14rem)_1fr] sm:items-center"
                     >
-                      <div className="relative aspect-[16/9] w-full overflow-hidden">
+                      <div className="relative aspect-[5/4] overflow-hidden bg-white/5 sm:aspect-[4/3]">
                         {gallery.coverThumbUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element -- dynamic Storage URLs
                           <img
                             src={gallery.coverThumbUrl}
                             alt=""
-                            className="size-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                            className="size-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                           />
                         ) : (
                           <div
@@ -331,180 +343,168 @@ export default async function ArtistProfilePage({
                             className="size-full bg-[linear-gradient(160deg,oklch(0.22_0.02_70),oklch(0.16_0.02_240))]"
                           />
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
-                        <div className="absolute inset-x-0 bottom-0 p-5">
-                          <p className="font-serif text-2xl tracking-tight text-white">
-                            {arabic && isIsmail
-                              ? gallery.id.includes("boats")
-                                ? "مراكب"
-                                : "القاعة"
-                              : gallery.title}
-                          </p>
-                          <p className="mt-1 text-[11px] tracking-[0.14em] text-white/65 uppercase">
-                            {gallery.artworkCount === 1
-                              ? arabic
-                                ? "عمل واحد"
-                                : "1 work"
-                              : arabic
-                                ? `${gallery.artworkCount} أعمال`
-                                : `${gallery.artworkCount} works`}
-                            {" · "}
+                      </div>
+                      <div>
+                        <p className="font-serif text-2xl tracking-tight text-white sm:text-3xl">
+                          {title}
+                        </p>
+                        <p className="mt-2 text-sm text-white/50">
+                          {gallery.artworkCount === 1
+                            ? arabic
+                              ? "عمل واحد"
+                              : "1 work"
+                            : arabic
+                              ? `${gallery.artworkCount} أعمال`
+                              : `${gallery.artworkCount} works`}
+                          <span className="mx-2 text-white/25">·</span>
+                          <span className="tracking-wide text-white/60 group-hover:text-white">
                             {arabic ? "ادخل الغرفة" : "Enter the room"}
-                          </p>
-                        </div>
+                          </span>
+                        </p>
                       </div>
                     </Link>
                   </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          {isIsmail ? (
-            <section className="mt-20 flex flex-col gap-12">
-              <div>
-                <p className="text-[11px] tracking-[0.2em] text-white/40 uppercase">
-                  {arabic ? "قاعة واحدة · أربعة أقسام" : "One hall · four sections"}
-                </p>
-                <h2 className="mt-2 font-serif text-3xl tracking-tight">
-                  {arabic ? "أقسام القاعة" : "Hall sections"}
-                </h2>
-                <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/55">
-                  {arabic
-                    ? "صحن للطرق والأشكال، جناح شرقي للمراكب، وجناح غربي لشجرة بيت الشامسي."
-                    : "Nave for roads and figures, east wing for Marakeb, west wing for the Bait Al Shamsi tree."}
-                </p>
-              </div>
-              {ISMAIL_SECTIONS.map((section, sectionIndex) => {
-                const works = [
-                  ...ISMAIL_HALL_WORKS,
-                  ...ISMAIL_BOAT_WORKS,
-                ].filter((work) => ismailSectionOf(work) === section.id);
-                if (works.length === 0) return null;
-                const href =
-                  section.id === "marakeb"
-                    ? "/demo/ismail/boats?view=list"
-                    : "/demo/ismail?view=list";
-                return (
-                  <div key={section.id} className="flex flex-col gap-5">
-                    <div className="flex flex-wrap items-end justify-between gap-3">
-                      <div>
-                        <p className="text-[11px] tracking-[0.2em] text-white/35 uppercase">
-                          {String(sectionIndex + 1).padStart(2, "0")}
-                        </p>
-                        <h3 className="mt-1 font-serif text-2xl tracking-tight">
-                          {arabic ? section.titleAr : section.title}
-                        </h3>
-                        <p className="mt-1 max-w-md text-sm text-white/50">
-                          {arabic ? section.blurbAr : section.blurb}
-                        </p>
-                      </div>
-                      <Link
-                        href={
-                          section.id === "marakeb"
-                            ? "/demo/ismail/boats"
-                            : "/demo/ismail"
-                        }
-                        className="text-[11px] tracking-[0.16em] text-white/50 uppercase transition-colors hover:text-white"
-                      >
-                        {arabic ? "تجوّل في القسم" : "Walk this section"}
-                      </Link>
-                    </div>
-                    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                      {works.map((work) => (
-                        <li key={work.id}>
-                          <Link href={href} className="group block">
-                            <div className="relative aspect-[4/5] overflow-hidden border border-white/10">
-                              {/* eslint-disable-next-line @next/next/no-img-element -- local JPEGs */}
-                              <img
-                                src={ismailTextureUrl(work.file)}
-                                alt={arabic ? work.titleAr : work.title}
-                                className="size-full object-cover transition duration-500 group-hover:scale-[1.04]"
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                              <p className="absolute inset-x-0 bottom-0 translate-y-1 px-3 pb-3 font-serif text-sm text-white opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-                                {arabic ? work.titleAr : work.title}
-                              </p>
-                            </div>
-                            <p className="mt-2 font-serif text-sm tracking-tight text-white/80">
-                              {arabic ? work.titleAr : work.title}
-                            </p>
-                            <p className="text-[11px] text-white/40">
-                              {work.year} ·{" "}
-                              {ismailMediumLocalized(work.medium, arabic)}
-                            </p>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
                 );
               })}
-            </section>
-          ) : null}
+            </ul>
+          )}
+        </section>
 
-          {isIsmail ? (
-            <section className="mt-20 grid gap-8 overflow-hidden border border-white/10 lg:grid-cols-[1.15fr_0.85fr]">
-              <div className="relative aspect-[4/3] lg:aspect-auto lg:min-h-[22rem]">
-                {/* eslint-disable-next-line @next/next/no-img-element -- local JPEG */}
-                <img
-                  src={ismailTextureUrl("studio.jpg")}
-                  alt={
-                    arabic
-                      ? "إسماعيل الرفاعي في الاستوديو"
-                      : "Ismail Rifai in the studio"
-                  }
-                  className="size-full object-cover object-[30%_40%]"
-                />
-              </div>
-              <div className="flex flex-col justify-center px-6 py-8 sm:px-8">
-                <p className="text-[11px] tracking-[0.2em] text-white/40 uppercase">
-                  {arabic ? "في الاستوديو" : "In the studio"}
-                </p>
-                <h2 className="mt-3 font-serif text-3xl tracking-tight">
-                  {arabic ? "الشارقة" : "Sharjah"}
+        {catalogueWorks.length > 0 ? (
+          <section className="mt-20">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 className="font-serif text-3xl tracking-tight sm:text-4xl">
+                  {arabic ? "مختارات" : "Selected works"}
                 </h2>
-                <p className="mt-4 max-w-md text-sm leading-relaxed text-white/65">
+                <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/50">
                   {arabic
-                    ? "أكثر من ثلاثة عشر عاماً في بيت عبيد الشامسي. الشجرة في الساحة، والمراكب، والطرق الليلية — كلها تُعلَّق هنا بمقياس المعرض."
-                    : "More than thirteen years in Bait Obaid Al-Shamsi. The courtyard tree, the boats, the night roads — hung here at exhibition scale."}
+                    ? "قائمة كتالوج — العنوان والسنة والوسيط. القاعة الكاملة في التجوّل."
+                    : "A catalogue list — title, year, medium. The full hang is in the walk."}
                 </p>
               </div>
-            </section>
-          ) : null}
+              {primaryWalk ? (
+                <Link
+                  href={`${primaryWalk}?view=list`}
+                  className="text-[11px] tracking-[0.16em] text-white/45 uppercase transition-colors hover:text-white"
+                >
+                  {arabic ? "كل الأعمال" : "All works"}
+                </Link>
+              ) : null}
+            </div>
+            <ol className="mt-10 divide-y divide-white/10 border-y border-white/10">
+              {catalogueWorks.map((work, index) => {
+                const href =
+                  work.id.startsWith("boat-")
+                    ? "/demo/ismail/boats?view=list"
+                    : "/demo/ismail?view=list";
+                const title = arabic ? work.titleAr : work.title;
+                return (
+                  <li key={work.id}>
+                    <Link
+                      href={href}
+                      className="group grid grid-cols-[2.5rem_minmax(0,5.5rem)_1fr] items-center gap-4 py-5 sm:grid-cols-[3rem_minmax(0,7rem)_1fr_auto] sm:gap-6"
+                    >
+                      <span className="text-[11px] tracking-[0.14em] text-white/35 tabular-nums">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <div className="relative aspect-[4/5] overflow-hidden bg-white/5">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- local JPEGs */}
+                        <img
+                          src={ismailTextureUrl(work.file)}
+                          alt=""
+                          className="size-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-serif text-lg tracking-tight text-white/90 sm:text-xl">
+                          {title}
+                        </p>
+                        <p className="mt-1 text-[12px] text-white/45">
+                          {work.year} ·{" "}
+                          {ismailMediumLocalized(work.medium, arabic)}
+                        </p>
+                      </div>
+                      <span className="hidden text-[11px] tracking-[0.14em] text-white/35 uppercase transition-colors group-hover:text-white/70 sm:block">
+                        {arabic ? "عرض" : "View"}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        ) : null}
 
-          {profile.contact.allowInquiries ? (
-            <section className="mt-20 max-w-xl border border-white/10 bg-white/[0.03] p-6 sm:p-8">
-              <h2 className="font-serif text-3xl tracking-tight">
-                {arabic ? "تواصل" : "Contact"}
-              </h2>
-              <p className="mt-2 text-sm text-white/55">
-                {arabic
-                  ? "أرسل ملاحظة عن عمل أو معرض. تصل إلى صندوق الفنان."
-                  : "Send a note about a work or a show. It lands in the artist’s inbox."}
+        {isIsmail ? (
+          <section className="mt-20 grid gap-10 lg:grid-cols-2 lg:items-center">
+            <div className="relative aspect-[4/3] overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element -- local JPEG */}
+              <img
+                src={ismailTextureUrl("studio.jpg")}
+                alt={
+                  arabic
+                    ? "إسماعيل الرفاعي في الاستوديو"
+                    : "Ismail Rifai in the studio"
+                }
+                className="size-full object-cover object-[30%_40%]"
+              />
+            </div>
+            <div>
+              <p className="text-[11px] tracking-[0.2em] text-white/40 uppercase">
+                {arabic ? "في الاستوديو" : "In the studio"}
               </p>
-              <div className="mt-6">
-                <EnquiryForm
-                  galleryId={galleries[0]?.id ?? null}
-                  disabled={
-                    !galleries[0] ||
-                    galleries[0].id.startsWith("demo-ismail-rifai")
-                  }
-                />
-                {!galleries[0] ||
-                galleries[0].id.startsWith("demo-ismail-rifai") ? (
-                  <p className="mt-3 text-xs text-white/40">
-                    {arabic
-                      ? "الاستفسارات تُفعَّل بعد نشر المعرض من الاستوديو."
-                      : "Publish a gallery from the studio to enable enquiries."}
-                  </p>
-                ) : null}
-              </div>
-            </section>
-          ) : null}
-        </div>
+              <h2 className="mt-3 font-serif text-3xl tracking-tight sm:text-4xl">
+                {arabic ? "الشارقة" : "Sharjah"}
+              </h2>
+              <p className="mt-4 max-w-md text-sm leading-relaxed text-white/60">
+                {arabic
+                  ? "أكثر من ثلاثة عشر عاماً في بيت عبيد الشامسي. الشجرة في الساحة، والمراكب، والطرق الليلية — كلها تُعلَّق هنا بمقياس المعرض."
+                  : "More than thirteen years in Bait Obaid Al-Shamsi. The courtyard tree, the boats, the night roads — hung here at exhibition scale."}
+              </p>
+            </div>
+          </section>
+        ) : null}
+
+        {profile.contact.allowInquiries ? (
+          <section className="mt-20 max-w-xl border-t border-white/10 pt-12">
+            <h2 className="font-serif text-3xl tracking-tight">
+              {arabic ? "تواصل" : "Contact"}
+            </h2>
+            <p className="mt-2 text-sm text-white/55">
+              {arabic
+                ? "أرسل ملاحظة عن عمل أو معرض. تصل إلى صندوق الفنان."
+                : "Send a note about a work or a show. It lands in the artist’s inbox."}
+            </p>
+            <div className="mt-6">
+              <EnquiryForm
+                galleryId={galleries[0]?.id ?? null}
+                disabled={
+                  !galleries[0] ||
+                  galleries[0].id.startsWith("demo-ismail-rifai")
+                }
+              />
+              {!galleries[0] ||
+              galleries[0].id.startsWith("demo-ismail-rifai") ? (
+                <p className="mt-3 text-xs text-white/40">
+                  {arabic
+                    ? "الاستفسارات تُفعَّل بعد نشر المعرض من الاستوديو."
+                    : "Publish a gallery from the studio to enable enquiries."}
+                </p>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
       </div>
     </main>
+  );
+}
+
+function pickIsmailCatalogue(): IsmailWork[] {
+  const all = [...ISMAIL_HALL_WORKS, ...ISMAIL_BOAT_WORKS];
+  const byId = new Map(all.map((work) => [work.id, work]));
+  return ISMAIL_CATALOGUE_PICKS.map((id) => byId.get(id)).filter(
+    (work): work is IsmailWork => Boolean(work),
   );
 }
 
@@ -515,7 +515,6 @@ function ownsPublicProfile(
 ): boolean {
   if (!account) return false;
   if (account.defaultWorkspaceId === profile.workspaceId) return true;
-  // Seeded Ismail demo: static `/a/ismail-rifai` may not share the Auth workspace id.
   return (
     profile.slug === ISMAIL_SLUG &&
     account.email.toLowerCase() === ISMAIL_EMAIL

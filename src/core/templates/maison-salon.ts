@@ -1,0 +1,270 @@
+import type { SceneTemplate } from "@/core/entities";
+import { createFrameSpec } from "@/core/value-objects/frame-spec";
+
+/**
+ * Maison Salon — haute gallery interior: warm ivory plaster, polished limestone,
+ * brass tracks, arched golden window, soft skylight, sculptural props.
+ * Feels like a private maison viewing room — not a white cube.
+ * Free tier so the demo is open to everyone.
+ */
+export const maisonSalonTemplate: SceneTemplate = {
+  id: "maison-salon",
+  version: 1,
+  name: "Maison Salon",
+  tagline: "Ivory plaster, brass light, limestone underfoot",
+  category: "luxury",
+  tier: "free",
+  status: "active",
+  shell: {
+    glbPath: "/templates/maison-salon/v1/shell.glb",
+    scale: 1,
+  },
+  environment: {
+    exposure: 1.06,
+    background: "#cfc6b8",
+    toneMapping: "aces",
+    fog: { color: "#cfc6b8", near: 14, far: 32 },
+  },
+  lighting: {
+    ambient: { color: "#f3ebe0", intensity: 0.26 },
+    hemisphere: {
+      skyColor: "#f0e6d6",
+      groundColor: "#a89880",
+      intensity: 0.4,
+    },
+    // Golden wash from the arched west window.
+    key: {
+      color: "#ffdcb0",
+      intensity: 1.28,
+      position: [-8.5, 5.8, -0.8],
+    },
+    // Soft skylight fill — cool ivory.
+    fill: {
+      color: "#f2f0ea",
+      intensity: 0.55,
+      position: [0.2, 9.2, 0.4],
+    },
+    rim: {
+      color: "#fff4e4",
+      intensity: 0.22,
+      position: [4.2, 3.6, -6],
+    },
+    presets: [
+      {
+        id: "maison",
+        label: "Maison",
+        spotIntensity: 1.12,
+        temperatureK: 3800,
+      },
+      {
+        id: "afternoon",
+        label: "Afternoon",
+        spotIntensity: 1.0,
+        temperatureK: 4600,
+      },
+    ],
+  },
+  materials: {
+    wall: "#f1ebe3",
+    wallBand: "#d9cfc0",
+    wallBandBottomM: 0.92,
+    wallBandTopM: 2.48,
+    floor: "#c8bba8",
+    ceiling: "#f6f2eb",
+    trim: "#a8895c",
+    wallRoughness: 0.9,
+    floorRoughness: 0.28,
+    floorMetalness: 0.06,
+    ceilingRoughness: 0.94,
+    floorStyle: "stone",
+    floorTextureId: "stone_tile",
+    wallTextureId: "plaster_smooth",
+  },
+  architecture: {
+    skylight: {
+      width: 4.4,
+      depth: 7.2,
+      gridX: 2,
+      gridZ: 4,
+      recessM: 0.28,
+    },
+    window: {
+      wallId: "west",
+      width: 1.7,
+      height: 3.55,
+      sillM: 0.55,
+      arched: true,
+    },
+    beams: {
+      axis: "x",
+      count: 6,
+      lengthM: 11.2,
+      center: [0, 0],
+      spacingM: 2.05,
+      color: "#8a7358",
+      widthM: 0.14,
+      heightM: 0.18,
+    },
+    trackLights: {
+      axis: "z",
+      count: 2,
+      spotsPerRail: 7,
+      lengthM: 12,
+      center: [0, 0],
+      spacingM: 6.2,
+      intensity: 0.48,
+      maxLive: 6,
+      railColor: "#b8956a",
+    },
+    plinths: [
+      { position: [-2.55, 0, 1.4], size: [0.52, 0.98, 0.52] },
+      { position: [2.65, 0, -1.8], size: [0.48, 0.9, 0.48] },
+      { position: [0, 0, -3.9], size: [0.72, 0.35, 0.72] },
+    ],
+    benches: [
+      {
+        position: [0, 0, 2.55],
+        size: [2.5, 0.42, 0.5],
+        color: "#6b5844",
+        glb: true,
+      },
+      {
+        position: [-3.6, 0, -3.2],
+        size: [1.6, 0.4, 0.46],
+        color: "#6b5844",
+        yaw: Math.PI / 2,
+        glb: true,
+      },
+    ],
+    glbProps: [
+      { model: "bust", position: [-2.55, 0.98, 1.4], scale: 1.1 },
+      { model: "vase", position: [2.65, 0.9, -1.8], scale: 1.05 },
+      { model: "vase", position: [0, 0.35, -3.9], scale: 0.78 },
+      {
+        model: "plinth_table",
+        position: [4.15, 0, 4.45],
+        scale: 1.08,
+        yaw: -0.2,
+      },
+      {
+        model: "plinth_table",
+        position: [-4.15, 0, 4.45],
+        scale: 1.05,
+        yaw: 0.35,
+      },
+      { model: "plant", position: [4.65, 0, 5.25], scale: 1.35, yaw: -0.35 },
+      { model: "plant", position: [-4.65, 0, 5.25], scale: 1.32, yaw: 0.85 },
+      { model: "plant", position: [4.55, 0, -5.15], scale: 1.28, yaw: 0.45 },
+      { model: "plant", position: [-4.55, 0, -5.15], scale: 1.3, yaw: 1.1 },
+      { model: "plant", position: [4.4, 0, 0.2], scale: 1.15, yaw: -0.8 },
+    ],
+    signs: [
+      {
+        text: "MAISON SALON",
+        subtitle: "Private viewing",
+        position: [0, 3.7, -5.95],
+        yaw: 0,
+        width: 4.6,
+        height: 0.85,
+        style: "wall",
+      },
+      {
+        text: "Maison Salon",
+        subtitle: "Limestone · brass · plaster",
+        position: [0, 0, 5.35],
+        yaw: Math.PI,
+        width: 1.15,
+        height: 0.4,
+        style: "plaque",
+      },
+    ],
+  },
+  walls: [
+    {
+      id: "north",
+      label: "North wall",
+      origin: [0, 0, -6.15],
+      normal: [0, 0, 1],
+      width: 12.2,
+      height: 4.7,
+      anchors: [
+        {
+          position: [-3.5, 1.72, 0.04],
+          maxWidth: 2.15,
+          maxHeight: 2.45,
+          preferred: true,
+        },
+        {
+          position: [0, 1.78, 0.04],
+          maxWidth: 2.4,
+          maxHeight: 2.7,
+          preferred: true,
+        },
+        {
+          position: [3.5, 1.72, 0.04],
+          maxWidth: 2.15,
+          maxHeight: 2.45,
+          preferred: true,
+        },
+      ],
+    },
+    {
+      id: "east",
+      label: "East wall",
+      origin: [6.1, 0, 0],
+      normal: [-1, 0, 0],
+      width: 12.3,
+      height: 4.7,
+      anchors: [
+        { position: [0.04, 1.7, -3.4], maxWidth: 2.0, maxHeight: 2.35 },
+        {
+          position: [0.04, 1.74, 0],
+          maxWidth: 2.2,
+          maxHeight: 2.5,
+          preferred: true,
+        },
+        { position: [0.04, 1.7, 3.4], maxWidth: 2.0, maxHeight: 2.35 },
+      ],
+    },
+    {
+      id: "west",
+      label: "West light wall",
+      origin: [-6.1, 0, 0],
+      normal: [1, 0, 0],
+      width: 12.3,
+      height: 4.7,
+      anchors: [
+        { position: [-0.04, 1.7, -3.6], maxWidth: 1.9, maxHeight: 2.25 },
+        { position: [-0.04, 1.7, 3.6], maxWidth: 1.9, maxHeight: 2.25 },
+      ],
+    },
+    {
+      id: "south",
+      label: "South wall",
+      origin: [0, 0, 6.15],
+      normal: [0, 0, -1],
+      width: 12.2,
+      height: 4.7,
+      anchors: [
+        { position: [-2.9, 1.7, -0.04], maxWidth: 2.1, maxHeight: 2.4 },
+        { position: [2.9, 1.7, -0.04], maxWidth: 2.1, maxHeight: 2.4 },
+      ],
+    },
+  ],
+  spawn: { position: [0, 1.62, 3.7], yaw: Math.PI },
+  walkBounds: [
+    [-5.25, -5.35],
+    [5.25, -5.35],
+    [5.25, 5.35],
+    [-5.25, 5.35],
+  ],
+  capacity: { recommended: 11, max: 14 },
+  frameDefaults: createFrameSpec({
+    style: "ornate",
+    color: "#2a2218",
+    widthCm: 4.5,
+    matteCm: 6,
+    matteColor: "#f4efe6",
+  }),
+  preview: { imagePath: "/templates/edition-hall/preview.jpg" },
+};

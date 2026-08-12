@@ -30,6 +30,7 @@ describe("processImage", () => {
     expect(result.lods.map((l) => l.size)).toEqual([512, 1024, 2048]);
     // Without BASISU_BIN, LODs are WebP stand-ins in the ktx2 slots.
     expect(result.textureFormat).toBe("webp");
+    expect(result.hangClarityEnhanced).toBe(true);
     for (const lod of result.lods) {
       expect(lod.extension).toBe("webp");
       expect(lod.buffer.byteLength).toBeGreaterThan(32);

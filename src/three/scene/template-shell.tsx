@@ -50,6 +50,7 @@ export function TemplateShell({
   mobile = false,
   quality = mobile ? "mobile" : "walk",
   floorBoost = false,
+  floorPolish = 1,
 }: {
   template: SceneTemplate;
   receiveShadow?: boolean;
@@ -57,6 +58,8 @@ export function TemplateShell({
   quality?: GalleryQuality;
   /** Marketing / walk museum grade: richer floor reflection. */
   floorBoost?: boolean;
+  /** Extra polish from daylight (noon brighter stone, night quieter). */
+  floorPolish?: number;
 }) {
   const materials = useMemo(
     () =>
@@ -131,12 +134,13 @@ export function TemplateShell({
     };
   }, [floorGeometry, ceilingGeometry]);
 
+  const polish = Math.max(0.75, Math.min(1.25, floorPolish));
   const walkEnv =
     quality === "walk" || quality === "marketing"
       ? polishedFloor
         ? floorBoost
-          ? 0.52
-          : 0.4
+          ? 0.52 * polish
+          : 0.4 * polish
         : 0.22
       : 0.14;
 
@@ -180,15 +184,19 @@ export function TemplateShell({
                 color="#ffffff"
                 map={floorMap}
                 roughness={Math.max(
-                  0.28,
-                  floorRoughness - (floorBoost ? 0.12 : 0.06),
+                  0.22,
+                  floorRoughness - (floorBoost ? 0.14 : 0.06) * polish,
                 )}
                 metalness={Math.min(
-                  0.05,
-                  floorMetalness + (floorBoost ? 0.02 : 0.01),
+                  0.06,
+                  floorMetalness + (floorBoost ? 0.025 : 0.01) * polish,
                 )}
-                clearcoat={floorBoost ? 0.55 : 0.38}
-                clearcoatRoughness={floorBoost ? 0.22 : 0.32}
+                clearcoat={Math.min(0.78, (floorBoost ? 0.58 : 0.4) * polish)}
+                clearcoatRoughness={Math.max(
+                  0.14,
+                  (floorBoost ? 0.2 : 0.3) / polish,
+                )}
+                reflectivity={Math.min(0.55, 0.28 * polish)}
                 envMapIntensity={walkEnv}
                 side={FrontSide}
               />
@@ -198,12 +206,18 @@ export function TemplateShell({
                 map={floorMap}
                 roughness={
                   polishedFloor
-                    ? Math.max(0.42, floorRoughness - (floorBoost ? 0.14 : 0.08))
+                    ? Math.max(
+                        0.36,
+                        floorRoughness - (floorBoost ? 0.16 : 0.08) * polish,
+                      )
                     : Math.max(0.52, floorRoughness)
                 }
                 metalness={
                   polishedFloor
-                    ? Math.min(0.06, floorMetalness + (floorBoost ? 0.025 : 0.01))
+                    ? Math.min(
+                        0.07,
+                        floorMetalness + (floorBoost ? 0.03 : 0.01) * polish,
+                      )
                     : Math.min(0.03, floorMetalness)
                 }
                 envMapIntensity={walkEnv}

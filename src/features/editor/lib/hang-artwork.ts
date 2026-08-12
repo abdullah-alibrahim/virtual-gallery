@@ -2,6 +2,7 @@ import type { Artwork, SceneTemplate } from "@/core/entities";
 import { arrangeArtworks } from "@/core/services/arrange-artworks";
 import { getIsmailWorkByAssetId } from "@/core/samples/ismail-rifai";
 import { getSamplePaintingByAssetId } from "@/core/samples/sample-paintings";
+import { estimateExhibitionDimensions } from "@/core/services/artwork-ai-assist";
 import { createDimensions } from "@/core/value-objects/dimensions";
 import { createFrameSpec } from "@/core/value-objects/frame-spec";
 import type { AssetListItem } from "@/infrastructure/firebase/assets-client";
@@ -22,13 +23,11 @@ export function hangAssetAsArtwork(input: {
   const sample =
     getSamplePaintingByAssetId(input.asset.id) ??
     getIsmailWorkByAssetId(input.asset.id);
-  // Default hang height ~1.2 m so new works read as exhibition pieces,
-  // not postcard stamps on large museum walls.
-  const heightCm = 120;
-  const widthCm =
+  // Default hang ~exhibition scale from pixel aspect (AI estimate, artist can override).
+  const dims =
     input.asset.width && input.asset.height
-      ? Math.round((input.asset.width / input.asset.height) * heightCm)
-      : 120;
+      ? estimateExhibitionDimensions(input.asset.width, input.asset.height)
+      : createDimensions(120, 120, "cm");
 
   const preset =
     input.template.lighting.presets.find(
@@ -46,7 +45,7 @@ export function hangAssetAsArtwork(input: {
     year: sample?.year ?? new Date().getFullYear(),
     medium: sample?.medium ?? null,
     category: null,
-    dimensions: createDimensions(widthCm, heightCm, "cm"),
+    dimensions: dims,
     price: null,
     availability: "available",
     frame: input.template.frameDefaults,

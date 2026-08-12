@@ -32,6 +32,7 @@ describe("template catalogue", () => {
       "l-wing-atelier",
       "long-corridor",
       "luxury",
+      "maison-salon",
       "mega-wing",
       "minimal",
       "modern-white",
@@ -48,6 +49,7 @@ describe("template catalogue", () => {
     expect(getTemplateById("soft-museum")?.tier).toBe("free");
     expect(getTemplateById("daylight-museum")?.tier).toBe("free");
     expect(getTemplateById("edition-hall")?.tier).toBe("free");
+    expect(getTemplateById("maison-salon")?.tier).toBe("free");
     expect(getTemplateById("harbor-pavilion")?.tier).toBe("free");
     expect(getTemplateById("grand-nave")?.tier).toBe("free");
     expect(getTemplateById("plaza-hall")?.tier).toBe("free");
@@ -110,6 +112,20 @@ describe("template catalogue", () => {
       expect(template.materials.floorStyle).toBeTruthy();
       expect(template.lighting.rim ?? template.lighting.fill).toBeTruthy();
     }
+  });
+
+  it("maison salon is a dressed haute hall with west arched light", () => {
+    const hall = getTemplateById("maison-salon")!;
+    const [sx, , sz] = hall.spawn.position;
+    expect(isInsidePolygon([sx, sz], hall.walkBounds)).toBe(true);
+    expect(hall.category).toBe("luxury");
+    expect(hall.architecture?.window?.wallId).toBe("west");
+    expect(hall.architecture?.window?.arched).toBe(true);
+    expect(hall.architecture?.skylight).toBeTruthy();
+    expect(hall.architecture?.glbProps?.length).toBeGreaterThanOrEqual(8);
+    expect(hall.architecture?.benches?.every((b) => b.glb)).toBe(true);
+    expect(hall.materials.floorStyle).toBe("stone");
+    expect(hall.frameDefaults.style).toBe("ornate");
   });
 
   it("daylight museum hall keeps spawn inside walkBounds and window on west", () => {

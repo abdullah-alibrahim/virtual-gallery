@@ -16,12 +16,18 @@ import {
   findWall,
   wallCoords,
 } from "@/core/services/wall-placement";
+import {
+  dimensionsRoughlyMatch,
+  estimateExhibitionDimensions,
+  suggestFrameFromArtwork,
+} from "@/core/services/artwork-ai-assist";
 import { FRAME_STYLES } from "@/core/value-objects/frame-spec";
 import { createDimensions } from "@/core/value-objects/dimensions";
 import { createFrameSpec } from "@/core/value-objects/frame-spec";
 import { createMoney } from "@/core/value-objects/money";
 import { useT } from "@/i18n";
 import type { MessageKey } from "@/i18n/translate";
+import { toast } from "sonner";
 
 import { useEditorStore } from "../store/editor-store";
 import {
@@ -62,6 +68,7 @@ const FLOOR_STYLE_KEYS: Record<FloorStyle, MessageKey> = {
 export function InspectorPanel() {
   const t = useT();
   const artworks = useEditorStore((s) => s.artworks);
+  const assets = useEditorStore((s) => s.assets);
   const selectedArtworkId = useEditorStore((s) => s.selectedArtworkId);
   const template = useEditorStore((s) => s.template);
   const gallery = useEditorStore((s) => s.gallery);
@@ -90,6 +97,35 @@ export function InspectorPanel() {
   );
 
   const artwork = artworks.find((a) => a.id === selectedArtworkId) ?? null;
+  const linkedAsset = artwork
+    ? (assets.find((a) => a.id === artwork.assetId) ?? null)
+    : null;
+  const sizeSuggestion =
+    linkedAsset?.width && linkedAsset.height
+      ? estimateExhibitionDimensions(linkedAsset.width, linkedAsset.height)
+      : null;
+  const showSizeSuggest =
+    Boolean(artwork && sizeSuggestion) &&
+    artwork != null &&
+    sizeSuggestion != null &&
+    !dimensionsRoughlyMatch(artwork.dimensions, sizeSuggestion);
+  const frameSuggestion =
+    artwork && template
+      ? suggestFrameFromArtwork({
+          dominantColor: linkedAsset?.dominantColor ?? null,
+          category: template.category,
+          defaults: template.frameDefaults,
+        })
+      : null;
+  const showFrameSuggest =
+    Boolean(artwork && frameSuggestion) &&
+    artwork != null &&
+    frameSuggestion != null &&
+    (artwork.frame.style !== frameSuggestion.frame.style ||
+      artwork.frame.color !== frameSuggestion.frame.color ||
+      artwork.frame.matteCm !== frameSuggestion.frame.matteCm ||
+      artwork.frame.matteColor !== frameSuggestion.frame.matteColor ||
+      artwork.frame.widthCm !== frameSuggestion.frame.widthCm);
   const resolved =
     template && gallery ? applyGalleryOverrides(template, gallery) : null;
   const materials = resolved?.materials ?? null;
@@ -906,6 +942,30 @@ export function InspectorPanel() {
             </Section>
 
             <Section title={t("editor.sizePrice")}>
+              {showSizeSuggest && sizeSuggestion ? (
+                <div className="mb-3 border border-[color:var(--editor-border)] bg-black/20 px-2.5 py-2">
+                  <p className="text-[10px] leading-relaxed text-[color:var(--editor-muted)]">
+                    {t("editor.aiSizeHint", {
+                      size: `${sizeSuggestion.width} × ${sizeSuggestion.height} ${sizeSuggestion.unit}`,
+                    })}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      className="border border-white/15 bg-white/10 px-2 py-1 text-[10px] tracking-wide text-white/85 hover:bg-white/15"
+                      onClick={() => {
+                        if (!artwork || !sizeSuggestion) return;
+                        updateArtwork(artwork.id, {
+                          dimensions: sizeSuggestion,
+                        });
+                        toast.message(t("editor.aiSizeApplied"));
+                      }}
+                    >
+                      {t("editor.aiApplySize")}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
               <PropertyRow label={t("editor.width")}>
                 <EditorField
                   type="number"
@@ -1000,6 +1060,28 @@ export function InspectorPanel() {
             </Section>
 
             <Section title={t("editor.frame")}>
+              {showFrameSuggest && frameSuggestion ? (
+                <div className="mb-3 border border-[color:var(--editor-border)] bg-black/20 px-2.5 py-2">
+                  <p className="text-[10px] leading-relaxed text-[color:var(--editor-muted)]">
+                    {t(
+                      `editor.aiFrame_${frameSuggestion.reasonKey}` as MessageKey,
+                    )}
+                  </p>
+                  <button
+                    type="button"
+                    className="mt-2 border border-white/15 bg-white/10 px-2 py-1 text-[10px] tracking-wide text-white/85 hover:bg-white/15"
+                    onClick={() => {
+                      if (!artwork || !frameSuggestion) return;
+                      updateArtwork(artwork.id, {
+                        frame: frameSuggestion.frame,
+                      });
+                      toast.message(t("editor.aiFrameApplied"));
+                    }}
+                  >
+                    {t("editor.aiApplyFrame")}
+                  </button>
+                </div>
+              ) : null}
               <PropertyRow label={t("editor.style")}>
                 <EditorSelect
                   value={artwork.frame.style}
@@ -1058,6 +1140,20 @@ export function InspectorPanel() {
                       frame: createFrameSpec({
                         ...artwork.frame,
                         matteCm: Number(e.target.value) || 0,
+                      }),
+                    })
+                  }
+                />
+              </PropertyRow>
+              <PropertyRow label={t("editor.matteColour")}>
+                <EditorField
+                  type="color"
+                  value={artwork.frame.matteColor}
+                  onChange={(e) =>
+                    updateArtwork(artwork.id, {
+                      frame: createFrameSpec({
+                        ...artwork.frame,
+                        matteColor: e.target.value,
                       }),
                     })
                   }

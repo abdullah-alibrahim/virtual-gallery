@@ -84,6 +84,13 @@ export default async function DemoIndexPage() {
               delay: "stagger-fade-1",
             },
             {
+              href: "/demo/maison",
+              label: t("demo.maisonLabel"),
+              title: t("demo.maisonTitle"),
+              body: t("demo.maisonBody"),
+              delay: "stagger-fade-1",
+            },
+            {
               href: "/demo/harbor",
               label: t("demo.harborLabel"),
               title: t("demo.harborTitle"),

@@ -170,8 +170,10 @@ export function ArtworkFrame({
       {showTitle ? (
         <TitlePlate
           title={artwork.title}
+          year={artwork.year}
+          medium={artwork.medium}
           width={Math.max(canvasW, 0.6)}
-          yOffset={-(outerH / 2) - 0.12}
+          yOffset={-(outerH / 2) - 0.08}
         />
       ) : null}
 

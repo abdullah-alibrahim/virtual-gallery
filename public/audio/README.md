@@ -3,6 +3,9 @@
 Visitor place sound and night ambience default to a **gentle WebAudio pad**
 (no file required) so demos work offline and without licensing friction.
 
+Target levels stay museum-quiet: soft stone hall air + light footsteps,
+never a music bed.
+
 ## Optional CC0 loops
 
 Place short royalty-free / CC0 files here if you prefer file-based loops:

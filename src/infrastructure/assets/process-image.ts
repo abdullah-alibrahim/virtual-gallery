@@ -39,6 +39,8 @@ export interface ProcessImageResult {
     readonly contentType: string;
   }>;
   readonly textureFormat: "ktx2" | "webp";
+  /** Derived LODs received a mild sharpen; original buffer was not modified. */
+  readonly hangClarityEnhanced: boolean;
 }
 
 export async function processImage(input: Buffer): Promise<ProcessImageResult> {
@@ -70,17 +72,18 @@ export async function processImage(input: Buffer): Promise<ProcessImageResult> {
   const lods = [];
 
   for (const size of LOD_SIZES) {
-    const png = await image
+    const sharpened = await image
       .clone()
       .rotate()
       .resize(size, size, { fit: "inside", withoutEnlargement: true })
+      .sharpen({ sigma: size >= 1024 ? 0.7 : 0.45, m1: 0.55, m2: 0.35 })
       .ensureAlpha()
       .png()
       .toBuffer();
 
     if (basisu) {
       try {
-        const ktx2 = await encodeKtx2WithBasisu(png, basisu);
+        const ktx2 = await encodeKtx2WithBasisu(sharpened, basisu);
         lods.push({
           size,
           buffer: ktx2,
@@ -96,7 +99,10 @@ export async function processImage(input: Buffer): Promise<ProcessImageResult> {
       }
     }
 
-    const webp = await sharp(png).webp({ quality: 86 }).toBuffer();
+    // Mild sharpen on derived hang LODs only — original file stays untouched.
+    const webp = await sharp(sharpened)
+      .webp({ quality: size >= 1024 ? 88 : 86 })
+      .toBuffer();
     lods.push({
       size,
       buffer: webp,
@@ -119,6 +125,7 @@ export async function processImage(input: Buffer): Promise<ProcessImageResult> {
     thumb512,
     lods,
     textureFormat,
+    hangClarityEnhanced: true,
   };
 }
 

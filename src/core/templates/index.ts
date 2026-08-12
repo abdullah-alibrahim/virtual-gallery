@@ -17,6 +17,7 @@ import { industrialTemplate } from "./industrial";
 import { lWingAtelierTemplate } from "./l-wing-atelier";
 import { longCorridorTemplate } from "./long-corridor";
 import { luxuryTemplate } from "./luxury";
+import { maisonSalonTemplate } from "./maison-salon";
 import { megaWingTemplate } from "./mega-wing";
 import { minimalTemplate } from "./minimal";
 import { modernWhiteTemplate } from "./modern-white";
@@ -40,6 +41,7 @@ export const TEMPLATE_CATALOGUE: readonly SceneTemplate[] = [
   softMuseumTemplate,
   daylightMuseumTemplate,
   editionHallTemplate,
+  maisonSalonTemplate,
   harborPavilionTemplate,
   grandNaveTemplate,
   plazaHallTemplate,
@@ -188,6 +190,7 @@ export {
   daylightAtriumTemplate,
   daylightMuseumTemplate,
   editionHallTemplate,
+  maisonSalonTemplate,
   harborPavilionTemplate,
   softMuseumTemplate,
   nightCubeTemplate,

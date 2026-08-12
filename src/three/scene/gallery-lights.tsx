@@ -6,6 +6,10 @@ import { Object3D } from "three";
 
 import type { SceneTemplate } from "@/core/entities";
 import { materialsFallback } from "@/core/templates";
+import {
+  daylightLook,
+  type DaylightPeriod,
+} from "@/features/viewer/lib/daylight";
 
 import type { GalleryQuality } from "./gallery-quality";
 
@@ -19,18 +23,22 @@ import type { GalleryQuality } from "./gallery-quality";
  *
  * Walk keeps ambient quieter so artwork spots read as lit canvases; key/fill
  * carry soft wall wash without bleaching pigment under ACES.
+ *
+ * `daylight` shifts sun colour / height for morning → noon → evening → night.
  */
 export function GalleryLights({
   template,
   quality,
   cinematic = false,
-  /** Visitor night / evening: lower ambient, warmer key, quieter wash. */
+  /** @deprecated Prefer `daylight`. Kept for editor / older callers. */
   eveningMode = false,
+  daylight = eveningMode ? "night" : "morning",
 }: {
   template: SceneTemplate;
   quality: GalleryQuality;
   cinematic?: boolean;
   eveningMode?: boolean;
+  daylight?: DaylightPeriod;
 }) {
   const lighting = template.lighting;
   const materials =
@@ -41,11 +49,11 @@ export function GalleryLights({
   const key = lighting.key ?? defaultKey(template.category);
   const fill = lighting.fill ?? defaultFill(template.category);
   const rim = lighting.rim;
+  const look = daylightLook(daylight);
 
   const cinematicTier = cinematic || quality === "marketing";
-  // Walk: stronger key, quieter ambient → paintings hold local spot contrast.
-  const keyScale =
-    (quality === "edit"
+  const qualityKey =
+    quality === "edit"
       ? 0.78
       : quality === "mobile"
         ? 0.82
@@ -53,7 +61,8 @@ export function GalleryLights({
           ? 0.94
           : quality === "walk"
             ? 0.9
-            : 0.84) * (eveningMode ? 0.82 : 1);
+            : 0.84;
+  const keyScale = qualityKey * look.keyScale;
   const castShadow = quality === "walk" || quality === "marketing";
   const mapSize = castShadow ? 2048 : 512;
   const ambientScale =
@@ -63,7 +72,7 @@ export function GalleryLights({
         ? 0.7
         : quality === "walk"
           ? 0.72
-          : 0.9) * (eveningMode ? 0.42 : 1);
+          : 0.9) * look.ambientScale;
   const hemiScale =
     (cinematicTier
       ? 0.8
@@ -71,12 +80,26 @@ export function GalleryLights({
         ? 0.76
         : quality === "edit"
           ? 0.9
-          : 1) * (eveningMode ? 0.48 : 1);
-  const keyColor = eveningMode ? "#ffc98a" : key.color;
-  const fillColor = eveningMode ? "#6a7a92" : fill.color;
-  const ambientColor = eveningMode ? "#1a1520" : lighting.ambient.color;
-  const hemiSky = eveningMode ? "#3a3348" : hemi.skyColor;
-  const hemiGround = eveningMode ? "#0e0c0a" : hemi.groundColor;
+          : 1) * look.hemiScale;
+
+  const keyPosition = useMemo(
+    () =>
+      [
+        key.position[0] + look.keyOffset[0],
+        key.position[1] + look.keyOffset[1],
+        key.position[2] + look.keyOffset[2],
+      ] as const,
+    [key.position, look.keyOffset],
+  );
+  const fillPosition = useMemo(
+    () =>
+      [
+        fill.position[0] + look.fillOffset[0],
+        fill.position[1] + look.fillOffset[1],
+        fill.position[2] + look.fillOffset[2],
+      ] as const,
+    [fill.position, look.fillOffset],
+  );
 
   const shadowHalf = useMemo(
     () => shadowFrustumHalf(template.walkBounds),
@@ -86,18 +109,18 @@ export function GalleryLights({
   return (
     <>
       <ambientLight
-        color={ambientColor}
+        color={look.ambientColor}
         intensity={lighting.ambient.intensity * ambientScale}
       />
       <hemisphereLight
-        color={hemiSky}
-        groundColor={hemiGround}
+        color={look.hemiSky}
+        groundColor={look.hemiGround}
         intensity={hemi.intensity * hemiScale}
       />
       <directionalLight
-        color={keyColor}
-        intensity={key.intensity * keyScale * (eveningMode ? 1.05 : 1)}
-        position={[key.position[0], key.position[1], key.position[2]]}
+        color={look.keyColor}
+        intensity={key.intensity * keyScale}
+        position={[keyPosition[0], keyPosition[1], keyPosition[2]]}
         castShadow={castShadow}
         shadow-mapSize-width={mapSize}
         shadow-mapSize-height={mapSize}
@@ -112,28 +135,32 @@ export function GalleryLights({
         shadow-radius={castShadow ? 4 : 1}
       />
       <directionalLight
-        color={fillColor}
+        color={look.fillColor}
         intensity={
           fill.intensity *
           keyScale *
           (cinematicTier ? 0.98 : 0.92) *
-          (eveningMode ? 0.55 : 1)
+          look.fillScale
         }
-        position={[fill.position[0], fill.position[1], fill.position[2]]}
+        position={[fillPosition[0], fillPosition[1], fillPosition[2]]}
       />
       {rim ? (
         <directionalLight
-          color={eveningMode ? "#c4a882" : rim.color}
+          color={look.rimColor}
           intensity={
             rim.intensity *
             (quality === "mobile" ? 0.55 : cinematicTier ? 0.88 : 0.75) *
-            (eveningMode ? 0.7 : 1)
+            look.rimScale
           }
           position={[rim.position[0], rim.position[1], rim.position[2]]}
         />
       ) : null}
       {quality === "walk" ? (
-        <GalleryWallWash template={template} eveningMode={eveningMode} />
+        <GalleryWallWash
+          template={template}
+          washColor={look.washColor}
+          washScale={look.washScale}
+        />
       ) : null}
     </>
   );
@@ -145,10 +172,12 @@ export function GalleryLights({
  */
 function GalleryWallWash({
   template,
-  eveningMode = false,
+  washColor,
+  washScale,
 }: {
   template: SceneTemplate;
-  eveningMode?: boolean;
+  washColor: string;
+  washScale: number;
 }) {
   const lightRef = useRef<SpotLightImpl>(null);
   const targetRef = useRef<Object3D>(null);
@@ -169,8 +198,8 @@ function GalleryWallWash({
     <>
       <spotLight
         ref={lightRef}
-        color={eveningMode ? "#ffb56e" : "#fff6ea"}
-        intensity={eveningMode ? 0.95 : 1.35}
+        color={washColor}
+        intensity={1.35 * washScale}
         angle={0.62}
         penumbra={0.82}
         distance={22}

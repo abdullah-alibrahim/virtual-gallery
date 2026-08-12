@@ -118,6 +118,7 @@ export async function processAsset(input: {
         exif: result.exif,
         fileName: asset.meta?.fileName ?? null,
         textureFormat: result.textureFormat,
+        hangClarityEnhanced: result.hangClarityEnhanced,
       },
       updatedAt: FieldValue.serverTimestamp(),
     });

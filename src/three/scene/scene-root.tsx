@@ -18,6 +18,11 @@ import {
 } from "three";
 
 import type { SceneManifest } from "@/core/entities";
+import {
+  daylightLook,
+  isNightLikePeriod,
+  type DaylightPeriod,
+} from "@/features/viewer/lib/daylight";
 
 import { EditorOrbitControls } from "../controls/editor-orbit-controls";
 import { FirstPersonWalkControls } from "../controls/first-person-walk-controls";
@@ -54,8 +59,10 @@ export interface SceneRootProps {
   readonly mobile?: boolean;
   /** Disable bloom / heavy post when the user prefers reduced motion. */
   readonly reducedMotion?: boolean;
-  /** Visitor night / evening lighting. */
+  /** Visitor night / evening lighting. Prefer `daylight`. */
   readonly eveningMode?: boolean;
+  /** Museum daylight cycle — morning / noon / evening / night. */
+  readonly daylight?: DaylightPeriod;
   /** Soft place sound + footsteps while walking. */
   readonly placeSoundEnabled?: boolean;
   /** Master mute for place / night ambience driven inside the canvas. */
@@ -83,6 +90,7 @@ export function SceneRoot({
   mobile = false,
   reducedMotion = false,
   eveningMode = false,
+  daylight,
   placeSoundEnabled = false,
   soundMuted = false,
   visitorShadow = false,
@@ -95,6 +103,9 @@ export function SceneRoot({
 }: SceneRootProps) {
   const { template, settings, artworks } = manifest;
   const spawn = template.spawn;
+  const period: DaylightPeriod =
+    daylight ?? (eveningMode ? "night" : "morning");
+  const look = daylightLook(period);
 
   useEffect(() => {
     if (
@@ -134,9 +145,9 @@ export function SceneRoot({
     : [spawn.position[0], spawn.position[1], spawn.position[2]];
 
   const dayClear = template.environment.background;
-  const clearColor = eveningMode ? darkenHex(dayClear, 0.55) : dayClear;
-  const exposure =
-    template.environment.exposure * (eveningMode ? 0.78 : 1);
+  const clearColor =
+    look.clearDarken > 0 ? darkenHex(dayClear, look.clearDarken) : dayClear;
+  const exposure = template.environment.exposure * look.exposureScale;
 
   return (
     <div
@@ -192,8 +203,8 @@ export function SceneRoot({
           onReady?.();
         }}
       >
-        <EveningAtmosphereSync
-          eveningMode={eveningMode}
+        <DaylightAtmosphereSync
+          period={period}
           dayClear={dayClear}
           dayExposure={template.environment.exposure}
           fog={template.environment.fog ?? null}
@@ -202,7 +213,7 @@ export function SceneRoot({
           template={template}
           quality={quality}
           cinematic={quality === "walk"}
-          eveningMode={eveningMode}
+          daylight={period}
         />
         <GalleryEnvironment quality={quality} category={template.category} />
 
@@ -212,6 +223,9 @@ export function SceneRoot({
           mobile={mobile}
           quality={quality}
           floorBoost={quality === "walk" && reflective}
+          floorPolish={
+            quality === "walk" && reflective ? look.floorPolish : 1
+          }
         />
 
         {artworks.map((artwork) => (
@@ -275,37 +289,39 @@ export function SceneRoot({
   );
 }
 
-function EveningAtmosphereSync({
-  eveningMode,
+function DaylightAtmosphereSync({
+  period,
   dayClear,
   dayExposure,
   fog,
 }: {
-  eveningMode: boolean;
+  period: DaylightPeriod;
   dayClear: string;
   dayExposure: number;
   fog: { color: string; near: number; far: number } | null;
 }) {
   const { scene, gl } = useThree();
+  const look = daylightLook(period);
 
   useEffect(() => {
-    const clear = eveningMode ? darkenHex(dayClear, 0.55) : dayClear;
+    const clear =
+      look.clearDarken > 0 ? darkenHex(dayClear, look.clearDarken) : dayClear;
     scene.background = new Color(clear);
     gl.setClearColor(clear, 1);
-    gl.toneMappingExposure = dayExposure * (eveningMode ? 0.78 : 1);
+    gl.toneMappingExposure = dayExposure * look.exposureScale;
 
     if (fog) {
       scene.fog = new Fog(
-        eveningMode ? darkenHex(fog.color, 0.45) : fog.color,
+        look.clearDarken > 0.2 ? darkenHex(fog.color, look.clearDarken * 0.8) : fog.color,
         fog.near,
-        eveningMode ? fog.far * 0.85 : fog.far,
+        look.clearDarken > 0.2 ? fog.far * 0.88 : fog.far,
       );
-    } else if (eveningMode) {
+    } else if (isNightLikePeriod(period)) {
       scene.fog = new Fog(clear, 8, 42);
     } else {
       scene.fog = null;
     }
-  }, [dayClear, dayExposure, eveningMode, fog, gl, scene]);
+  }, [dayClear, dayExposure, fog, gl, look, period, scene]);
 
   return null;
 }

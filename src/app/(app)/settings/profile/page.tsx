@@ -8,6 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { ProfileSettingsForm } from "@/features/profile/components/profile-settings-form";
 import { getAuthContext } from "@/infrastructure/firebase/auth-context";
 import { loadArtistProfileByWorkspace } from "@/infrastructure/profiles/load-profile";
+import { listWorkspaceCoverCandidates } from "@/infrastructure/profiles/list-cover-candidates";
 import { getTranslator } from "@/i18n/server";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,17 @@ export default async function ProfileSettingsPage() {
   );
   if (!profile) redirect("/onboarding");
 
+  let coverCandidates: Awaited<
+    ReturnType<typeof listWorkspaceCoverCandidates>
+  > = [];
+  try {
+    coverCandidates = await listWorkspaceCoverCandidates(
+      ctx.account.defaultWorkspaceId,
+    );
+  } catch {
+    coverCandidates = [];
+  }
+
   return (
     <AppPage>
       <PageHeader
@@ -40,7 +52,10 @@ export default async function ProfileSettingsPage() {
         }
       />
       <div className="stagger-fade stagger-fade-1">
-        <ProfileSettingsForm profile={profile} />
+        <ProfileSettingsForm
+          profile={profile}
+          coverCandidates={coverCandidates}
+        />
       </div>
     </AppPage>
   );

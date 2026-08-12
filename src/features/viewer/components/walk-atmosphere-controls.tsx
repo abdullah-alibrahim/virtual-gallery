@@ -1,28 +1,39 @@
 "use client";
 
-import { Moon, Sun, Volume2, VolumeX } from "lucide-react";
+import { Moon, Sun, Sunrise, Sunset, Volume2, VolumeX } from "lucide-react";
 
+import type { DaylightPeriod } from "@/features/viewer/lib/daylight";
+import { isNightLikePeriod } from "@/features/viewer/lib/daylight";
+import type { MessageKey } from "@/i18n";
 import { useT } from "@/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 
+const PERIOD_LABEL: Record<DaylightPeriod, MessageKey> = {
+  morning: "walk.morning",
+  noon: "walk.noon",
+  evening: "walk.evening",
+  night: "walk.night",
+};
+
 /**
- * Compact Walk HUD cluster: Night Mode + place sound mute.
+ * Compact Walk HUD cluster: daylight cycle + place sound mute.
  * Sits beside existing chrome without cluttering the title plaque.
  */
 export function WalkAtmosphereControls({
-  nightMode,
+  daylight,
   soundMuted,
-  onToggleNight,
+  onCycleDaylight,
   onToggleSound,
   className,
 }: {
-  nightMode: boolean;
+  daylight: DaylightPeriod;
   soundMuted: boolean;
-  onToggleNight: () => void;
+  onCycleDaylight: () => void;
   onToggleSound: () => void;
   className?: string;
 }) {
   const t = useT();
+  const periodLabel = t(PERIOD_LABEL[daylight]);
 
   return (
     <div
@@ -34,15 +45,11 @@ export function WalkAtmosphereControls({
       aria-label={t("walk.atmosphere")}
     >
       <AtmButton
-        label={nightMode ? t("walk.dayMode") : t("walk.nightMode")}
-        active={nightMode}
-        onClick={onToggleNight}
+        label={`${t("walk.cycleDaylight")}: ${periodLabel}`}
+        active={isNightLikePeriod(daylight)}
+        onClick={onCycleDaylight}
       >
-        {nightMode ? (
-          <Sun className="size-4" />
-        ) : (
-          <Moon className="size-4" />
-        )}
+        <DaylightIcon period={daylight} />
       </AtmButton>
       <AtmButton
         label={soundMuted ? t("walk.unmuteSound") : t("walk.muteSound")}
@@ -57,6 +64,19 @@ export function WalkAtmosphereControls({
       </AtmButton>
     </div>
   );
+}
+
+function DaylightIcon({ period }: { period: DaylightPeriod }) {
+  switch (period) {
+    case "morning":
+      return <Sunrise className="size-4" />;
+    case "noon":
+      return <Sun className="size-4" />;
+    case "evening":
+      return <Sunset className="size-4" />;
+    case "night":
+      return <Moon className="size-4" />;
+  }
 }
 
 function AtmButton({

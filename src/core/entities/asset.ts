@@ -53,6 +53,8 @@ export interface AssetMeta {
   readonly dominantColor: string | null;
   readonly blurhash: string | null;
   readonly exif: Readonly<Record<string, string | number>> | null;
+  /** Derived hang LODs were clarity-boosted; original remains private/unedited. */
+  readonly hangClarityEnhanced?: boolean;
 }
 
 /**
