@@ -29,7 +29,7 @@ export function PrintCatalogue({
   return (
     <main className="print-catalogue min-h-dvh bg-[color:var(--luxury-stone)] text-[color:var(--luxury-ink)]">
       <div className="no-print border-b border-border bg-background/90 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-6 py-4">
+        <div className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <div className="flex flex-wrap gap-3 text-sm">
             <Link
               href={walkHref}
@@ -56,7 +56,7 @@ export function PrintCatalogue({
         </div>
       </div>
 
-      <div className="mx-auto max-w-3xl px-6 py-14 md:py-20">
+      <div className="mx-auto w-full max-w-4xl px-4 py-14 sm:px-6 md:py-20">
         <header className="border-b border-[color:var(--luxury-ink)]/15 pb-10">
           <p className="text-[11px] tracking-[0.22em] text-muted-foreground uppercase">
             Exhibition catalogue

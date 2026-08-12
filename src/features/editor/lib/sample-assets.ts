@@ -1,10 +1,51 @@
 import {
+  ISMAIL_BOAT_WORKS,
+  ISMAIL_TREE_WORKS,
+  ISMAIL_WORKS,
+  ismailAssetId,
+  ismailTextureUrl,
+} from "@/core/samples/ismail-rifai";
+import {
   SAMPLE_PAINTINGS,
   isSampleAssetId,
   sampleAssetId,
   sampleTextureUrl,
 } from "@/core/samples/sample-paintings";
 import type { AssetListItem } from "@/infrastructure/firebase/assets-client";
+
+/** Editor list entries for Ismail Rifai’s local pack. */
+export function buildIsmailAssetListItems(
+  workspaceId: string,
+  works: readonly { id: string; file: string; widthPx: number; heightPx: number; dominantColor: string }[] = ISMAIL_WORKS,
+): AssetListItem[] {
+  return works.map((work) => {
+    const url = ismailTextureUrl(work.file);
+    return {
+      id: ismailAssetId(work.id),
+      workspaceId,
+      status: "ready" as const,
+      fileName: work.file,
+      bytes: 0,
+      mime: "image/jpeg",
+      width: work.widthPx,
+      height: work.heightPx,
+      thumbUrl: url,
+      blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
+      dominantColor: work.dominantColor,
+      textureFormat: "jpeg",
+      error: null,
+      createdAt: null,
+    };
+  });
+}
+
+export function buildIsmailBoatAssetListItems(workspaceId: string): AssetListItem[] {
+  return buildIsmailAssetListItems(workspaceId, ISMAIL_BOAT_WORKS);
+}
+
+export function buildIsmailTreeAssetListItems(workspaceId: string): AssetListItem[] {
+  return buildIsmailAssetListItems(workspaceId, ISMAIL_TREE_WORKS);
+}
 
 /** Editor / Assets-panel list entries for the starter pack. */
 export function buildSampleAssetListItems(

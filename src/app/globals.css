@@ -448,8 +448,8 @@
   }
 }
 
-/* First-paint splash — SSR markup in root layout, dismissed client-side */
-html.vg-splash-active {
+/* First-paint splash — React-owned markup; hide via data-state, unmount via React */
+html:has(#vg-splash:not([data-state="out"])) {
   overflow: hidden;
 }
 
@@ -476,6 +476,10 @@ html.vg-splash-active {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+}
+
+#vg-splash[data-state="out"] .vg-splash-spinner {
+  animation: none;
 }
 
 .vg-splash-inner {
@@ -692,11 +696,13 @@ html.vg-splash-active {
 
   html {
     -webkit-text-size-adjust: 100%;
+    overflow-x: clip;
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply min-h-dvh w-full bg-background text-foreground antialiased;
     font-feature-settings: "cv11", "ss01";
+    overflow-x: clip;
   }
 
   /* Visible focus for keyboard users only — the editor is fully keyboard-driven. */

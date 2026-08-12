@@ -41,13 +41,28 @@ import {
   findArtwork,
 } from "./artwork-detail-sheet";
 import { BlurhashThumb } from "./blurhash-thumb";
+import { EveningTourBanner } from "./evening-tour-banner";
 import { ExhibitionAboutDrawer } from "./exhibition-about-drawer";
 import { GuestbookBar } from "./guestbook-bar";
 import { GuidedTourControls } from "./guided-tour-controls";
+import { InnerWorldOverlay } from "./inner-world-overlay";
 import { SharePanel } from "./share-panel";
 import { TouchControls } from "./touch-controls";
+import { WalkAtmosphereControls } from "./walk-atmosphere-controls";
 import { WallLabel } from "./wall-label";
 import { ZoomLightbox } from "./zoom-lightbox";
+import {
+  readEveningInviteFromSearch,
+  resolveEveningTourAccess,
+  type EveningTourAccess,
+} from "@/features/viewer/lib/evening-tour";
+import {
+  readNightModePreference,
+  readPlaceSoundPreference,
+  writeNightModePreference,
+  writePlaceSoundPreference,
+} from "@/features/viewer/lib/visitor-preferences";
+import { getGalleryAmbienceEngine } from "@/features/viewer/lib/webaudio-ambience";
 
 const SceneRoot = dynamic(
   () =>
@@ -100,6 +115,13 @@ export function GalleryViewer({
   const [aboutOpen, setAboutOpen] = useState(false);
   const [tourActive, setTourActive] = useState(false);
   const [collectorMode, setCollectorMode] = useState(false);
+  const [nightMode, setNightMode] = useState(false);
+  const [soundMuted, setSoundMuted] = useState(false);
+  const [placeSoundOn, setPlaceSoundOn] = useState(true);
+  const [innerWorldOpen, setInnerWorldOpen] = useState(false);
+  const [eveningBannerDismissed, setEveningBannerDismissed] = useState(false);
+  const [eveningSimulate, setEveningSimulate] = useState(false);
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const t = useT();
 
@@ -113,6 +135,20 @@ export function GalleryViewer({
   const isPrivateLink =
     manifest.visibility === "unlisted" || manifest.visibility === "password";
   const hasStatement = Boolean(manifest.description?.trim());
+  const eveningTour = manifest.settings.eveningTour ?? null;
+  const isDemoGallery = manifest.galleryId.startsWith("demo-");
+
+  const eveningAccess: EveningTourAccess = useMemo(() => {
+    if (eveningSimulate && eveningTour?.enabled) {
+      return {
+        status: "open",
+        via: "invite",
+        startAt: eveningTour.startAt,
+        endAt: eveningTour.endAt,
+      };
+    }
+    return resolveEveningTourAccess(eveningTour, new Date(), inviteCode);
+  }, [eveningSimulate, eveningTour, inviteCode]);
 
   const shareUrl = useMemo(() => {
     if (typeof window === "undefined") return shareBasePath;
@@ -153,10 +189,43 @@ export function GalleryViewer({
       if (window.localStorage.getItem(COLLECTOR_KEY) === "1") {
         setCollectorMode(true);
       }
+      const nightPref = readNightModePreference(manifest.galleryId);
+      if (nightPref != null) setNightMode(nightPref);
+      const soundPref = readPlaceSoundPreference(manifest.galleryId);
+      if (soundPref === "muted") {
+        setSoundMuted(true);
+        setPlaceSoundOn(false);
+      } else if (soundPref === "on") {
+        setSoundMuted(false);
+        setPlaceSoundOn(true);
+      }
+      setInviteCode(readEveningInviteFromSearch(window.location.search));
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [manifest.galleryId]);
+
+  useEffect(() => {
+    if (!entered) return;
+    const engine = getGalleryAmbienceEngine();
+    void engine.setMuted(soundMuted || reduceMotion);
+    void engine.setNightAmbience(nightMode && !soundMuted && !reduceMotion);
+    void engine.setPlaceSound(placeSoundOn && !soundMuted && !reduceMotion);
+  }, [entered, nightMode, placeSoundOn, reduceMotion, soundMuted]);
+
+  useEffect(() => {
+    if (!entered) return;
+    if (eveningAccess.status !== "open") return;
+    const pref = readNightModePreference(manifest.galleryId);
+    if (pref == null) {
+      setNightMode(true);
+      writeNightModePreference(manifest.galleryId, true);
+    }
+  }, [entered, eveningAccess.status, manifest.galleryId]);
+
+  useEffect(() => {
+    setInnerWorldOpen(false);
+  }, [selectedId]);
 
   useEffect(() => {
     const onFs = () => setFullscreen(Boolean(document.fullscreenElement));
@@ -217,6 +286,36 @@ export function GalleryViewer({
       return next;
     });
   }, [t]);
+
+  const toggleNightMode = useCallback(() => {
+    setNightMode((prev) => {
+      const next = !prev;
+      writeNightModePreference(manifest.galleryId, next);
+      toast.message(next ? t("walk.nightModeOn") : t("walk.dayModeOn"));
+      return next;
+    });
+  }, [manifest.galleryId, t]);
+
+  const toggleSound = useCallback(() => {
+    setSoundMuted((prev) => {
+      const nextMuted = !prev;
+      const placeOn = !nextMuted;
+      setPlaceSoundOn(placeOn);
+      writePlaceSoundPreference(
+        manifest.galleryId,
+        nextMuted ? "muted" : "on",
+      );
+      toast.message(nextMuted ? t("walk.soundMuted") : t("walk.soundOn"));
+      return nextMuted;
+    });
+  }, [manifest.galleryId, t]);
+
+  const enterEvening = useCallback(() => {
+    setNightMode(true);
+    writeNightModePreference(manifest.galleryId, true);
+    setEveningBannerDismissed(true);
+    toast.message(t("walk.nightModeOn"));
+  }, [manifest.galleryId, t]);
 
   const enterRoom = useCallback(() => {
     const arch = manifest.template.architecture;
@@ -322,6 +421,10 @@ export function GalleryViewer({
               walkEnabled={walkEnabled}
               mobile={mobile}
               reducedMotion={reduceMotion}
+              eveningMode={nightMode}
+              placeSoundEnabled={placeSoundOn && entered}
+              soundMuted={soundMuted || reduceMotion}
+              visitorShadow={entered && !collectorMode}
               selectedArtworkId={selectedId}
               onSelectArtwork={selectArtwork}
               className="size-full min-h-dvh"
@@ -430,25 +533,56 @@ export function GalleryViewer({
             </ChromeButton>
           </div>
           {entered ? (
-            <div className={cn(collectorMode && "viewer-chrome-hide")}>
-              <GuestbookBar galleryId={manifest.galleryId} />
-              {!shareOpen ? (
-                <div className="mt-2">
-                  <GuidedTourControls
-                    artworks={manifest.artworks}
-                    currentId={selectedId}
-                    active={tourActive}
-                    onToggle={() => {
-                      if (!tourActive) startTour();
-                      else setTourActive(false);
-                    }}
-                    onSelect={(id) => {
-                      setTourActive(true);
-                      selectArtwork(id);
-                    }}
-                  />
-                </div>
+            <div
+              className={cn(
+                "flex flex-col items-end gap-2",
+                collectorMode && "viewer-chrome-dim",
+              )}
+            >
+              <WalkAtmosphereControls
+                nightMode={nightMode}
+                soundMuted={soundMuted}
+                onToggleNight={toggleNightMode}
+                onToggleSound={toggleSound}
+              />
+              {isDemoGallery && eveningTour?.enabled ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEveningSimulate((v) => !v);
+                    setEveningBannerDismissed(false);
+                    if (!eveningSimulate) {
+                      setNightMode(true);
+                      writeNightModePreference(manifest.galleryId, true);
+                    }
+                  }}
+                  className="text-[10px] tracking-wide text-white/40 underline-offset-4 hover:text-white/70 hover:underline"
+                >
+                  {eveningSimulate
+                    ? t("walk.dayMode")
+                    : t("walk.simulateEvening")}
+                </button>
               ) : null}
+              <div className={cn(collectorMode && "viewer-chrome-hide")}>
+                <GuestbookBar galleryId={manifest.galleryId} />
+                {!shareOpen ? (
+                  <div className="mt-2">
+                    <GuidedTourControls
+                      artworks={manifest.artworks}
+                      currentId={selectedId}
+                      active={tourActive}
+                      onToggle={() => {
+                        if (!tourActive) startTour();
+                        else setTourActive(false);
+                      }}
+                      onSelect={(id) => {
+                        setTourActive(true);
+                        selectArtwork(id);
+                      }}
+                    />
+                  </div>
+                ) : null}
+              </div>
             </div>
           ) : null}
         </div>
@@ -575,6 +709,7 @@ export function GalleryViewer({
           galleryWebsite={manifest.galleryWebsite}
           mockupsHref={mockupsHref}
           spaceHref={spaceHref}
+          soundMuted={soundMuted}
           tourIndex={tourActive && tourIndex >= 0 ? tourIndex : null}
           tourTotal={tourActive ? tourOrdered.length : null}
           onTourPrev={
@@ -590,7 +725,40 @@ export function GalleryViewer({
           onClose={() => setSelectedId(null)}
           onZoom={() => setZoomOpen(true)}
           onShare={() => setShareOpen(true)}
+          onEnterInnerWorld={
+            selected.innerWorld ? () => setInnerWorldOpen(true) : undefined
+          }
         />
+      ) : null}
+
+      {innerWorldOpen && selected?.innerWorld ? (
+        <InnerWorldOverlay
+          world={selected.innerWorld}
+          artworkTitle={selected.title}
+          onClose={() => setInnerWorldOpen(false)}
+        />
+      ) : null}
+
+      {entered &&
+      eveningTour?.enabled &&
+      !eveningBannerDismissed &&
+      !collectorMode &&
+      !shareOpen ? (
+        <div className="pointer-events-none absolute bottom-[max(4.5rem,env(safe-area-inset-bottom)+3.5rem)] left-3 z-30 md:bottom-8 md:left-6">
+          <EveningTourBanner
+            access={eveningAccess}
+            tour={eveningTour}
+            sharePath={shareBasePath}
+            nightMode={nightMode}
+            onEnterEvening={enterEvening}
+            onDismiss={() => setEveningBannerDismissed(true)}
+            showSimulate={isDemoGallery}
+            onSimulate={() => {
+              setEveningSimulate(true);
+              setEveningBannerDismissed(false);
+            }}
+          />
+        </div>
       ) : null}
 
       {collectorMode && selected && entered ? (

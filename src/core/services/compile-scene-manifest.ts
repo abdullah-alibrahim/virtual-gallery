@@ -98,6 +98,9 @@ export function compileSceneManifest(input: CompileInput): SceneManifest {
       showTitles: input.gallery.settings.showTitles,
       allowZoom: input.gallery.settings.allowZoom,
       ...(ambientAudioUrl ? { ambientAudioUrl } : {}),
+      ...(input.gallery.settings.eveningTour?.enabled
+        ? { eveningTour: input.gallery.settings.eveningTour }
+        : {}),
     },
     compiledAt: input.compiledAt.toISOString(),
   };
@@ -107,6 +110,7 @@ function hasSocials(socials: ArtistSocials | undefined): boolean {
   if (!socials) return false;
   return Boolean(
     socials.website ||
+      socials.facebook ||
       socials.instagram ||
       socials.twitter ||
       socials.linkedin ||
@@ -171,9 +175,12 @@ function toSceneArtwork(
     ]);
   }
 
-  const audioUrl = artwork.media.audioAssetId
+  const assetAudioUrl = artwork.media.audioAssetId
     ? assets.get(artwork.media.audioAssetId)?.variants.audio_m4a
     : null;
+  const audioUrl =
+    assetAudioUrl ??
+    (artwork.media.audioUrl?.trim() ? artwork.media.audioUrl.trim() : null);
 
   const media =
     audioUrl || artwork.media.videoUrl
@@ -184,6 +191,8 @@ function toSceneArtwork(
             : {}),
         }
       : null;
+
+  const innerWorld = artwork.media.innerWorld ?? null;
 
   return {
     id: artwork.id,
@@ -210,6 +219,7 @@ function toSceneArtwork(
       blurhash: asset.meta.blurhash ?? "",
     },
     ...(media ? { media } : {}),
+    ...(innerWorld ? { innerWorld } : {}),
   };
 }
 

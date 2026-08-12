@@ -79,7 +79,7 @@ export default async function PricingPage() {
         secondaryCta={secondaryCta}
       />
 
-      <section className="relative mx-auto flex w-full max-w-6xl flex-col gap-16 px-6 py-12 pb-16 sm:px-8 sm:py-16 sm:pb-20">
+      <section className="relative mx-auto flex w-full max-w-7xl flex-col gap-16 px-4 py-12 pb-16 sm:px-8 sm:py-16 sm:pb-20">
         <div className="page-enter max-w-3xl space-y-5">
           <p className="font-serif text-5xl leading-none tracking-tight text-foreground/25 sm:text-6xl">
             {siteConfig.name}

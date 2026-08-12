@@ -1,5 +1,6 @@
 import type { Artwork, SceneTemplate } from "@/core/entities";
 import { arrangeArtworks } from "@/core/services/arrange-artworks";
+import { getIsmailWorkByAssetId } from "@/core/samples/ismail-rifai";
 import { getSamplePaintingByAssetId } from "@/core/samples/sample-paintings";
 import { createDimensions } from "@/core/value-objects/dimensions";
 import { createFrameSpec } from "@/core/value-objects/frame-spec";
@@ -18,7 +19,9 @@ export function hangAssetAsArtwork(input: {
   /** Template lighting preset id; falls back to first preset. */
   lightingPresetId?: string;
 }): Artwork | null {
-  const sample = getSamplePaintingByAssetId(input.asset.id);
+  const sample =
+    getSamplePaintingByAssetId(input.asset.id) ??
+    getIsmailWorkByAssetId(input.asset.id);
   // Default hang height ~1.2 m so new works read as exhibition pieces,
   // not postcard stamps on large museum walls.
   const heightCm = 120;

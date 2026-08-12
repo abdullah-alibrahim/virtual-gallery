@@ -19,18 +19,18 @@ export default async function AppShellLayout({
 
   return (
     <AuthHydrator>
-      <div className="flex min-h-dvh bg-background">
+      <div className="flex min-h-dvh w-full overflow-x-hidden bg-background">
         <AppSidebar
           studioName={displayName}
           showAdmin={isPlatformAdmin(ctx.session)}
         />
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
           <AppTopbar
             displayName={displayName}
             email={email}
             actions={<SignOutButton />}
           />
-          <div className="flex-1 overflow-auto">{children}</div>
+          <div className="min-h-0 min-w-0 flex-1 overflow-auto">{children}</div>
         </div>
       </div>
     </AuthHydrator>

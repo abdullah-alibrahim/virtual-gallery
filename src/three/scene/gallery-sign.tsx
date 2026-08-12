@@ -3,6 +3,9 @@
 import { Suspense } from "react";
 import { Text } from "@react-three/drei";
 
+/** Latin + Arabic. Troika's default Roboto has no Arabic glyphs — signs looked empty. */
+const SIGN_FONT = "/fonts/IBMPlexSansArabic-Regular.ttf";
+
 /**
  * Architectural gallery title — wall-mounted museum lettering or a freestanding
  * plaque. Kept out of the HUD so the hall itself carries the exhibition name.
@@ -100,6 +103,7 @@ function WallTitle({
       </mesh>
       <Suspense fallback={null}>
         <Text
+          font={SIGN_FONT}
           position={[0, subtitle ? 0.08 : 0, 0.03]}
           fontSize={fontSize}
           maxWidth={width * 0.92}
@@ -107,12 +111,14 @@ function WallTitle({
           anchorX="center"
           anchorY="middle"
           color="#1a1c1e"
-          letterSpacing={0.08}
+          letterSpacing={signLetterSpacing(text, 0.08)}
+          direction={hasArabic(text) ? "rtl" : "ltr"}
         >
-          {text}
+          {signLabel(text)}
         </Text>
         {subtitle ? (
           <Text
+            font={SIGN_FONT}
             position={[0, -height * 0.28, 0.03]}
             fontSize={Math.min(0.11, height * 0.14)}
             maxWidth={width * 0.9}
@@ -120,9 +126,10 @@ function WallTitle({
             anchorX="center"
             anchorY="middle"
             color="#5c6168"
-            letterSpacing={0.16}
+            letterSpacing={signLetterSpacing(subtitle, 0.12)}
+            direction={hasArabic(subtitle) ? "rtl" : "ltr"}
           >
-            {subtitle.toUpperCase()}
+            {signLabel(subtitle)}
           </Text>
         ) : null}
       </Suspense>
@@ -181,6 +188,7 @@ function FreestandingPlaque({
       </mesh>
       <Suspense fallback={null}>
         <Text
+          font={SIGN_FONT}
           position={[0, boardY + (subtitle ? 0.04 : 0), 0.032]}
           fontSize={fontSize}
           maxWidth={width * 0.9}
@@ -188,12 +196,14 @@ function FreestandingPlaque({
           anchorX="center"
           anchorY="middle"
           color="#f4f1ea"
-          letterSpacing={0.04}
+          letterSpacing={signLetterSpacing(text, 0.04)}
+          direction={hasArabic(text) ? "rtl" : "ltr"}
         >
-          {text}
+          {signLabel(text)}
         </Text>
         {subtitle ? (
           <Text
+            font={SIGN_FONT}
             position={[0, boardY - height * 0.28, 0.032]}
             fontSize={Math.min(0.055, height * 0.16)}
             maxWidth={width * 0.88}
@@ -201,12 +211,25 @@ function FreestandingPlaque({
             anchorX="center"
             anchorY="middle"
             color="#c4b79a"
-            letterSpacing={0.12}
+            letterSpacing={signLetterSpacing(subtitle, 0.08)}
+            direction={hasArabic(subtitle) ? "rtl" : "ltr"}
           >
-            {subtitle.toUpperCase()}
+            {signLabel(subtitle)}
           </Text>
         ) : null}
       </Suspense>
     </group>
   );
+}
+
+function hasArabic(value: string): boolean {
+  return /[\u0600-\u06FF]/.test(value);
+}
+
+function signLetterSpacing(value: string, latin: number): number {
+  return hasArabic(value) ? 0 : latin;
+}
+
+function signLabel(value: string): string {
+  return hasArabic(value) ? value : value.toUpperCase();
 }

@@ -42,7 +42,7 @@ export function LandingHero() {
         <div className="veil-shimmer pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[color:var(--luxury-stone)]/50 to-transparent" />
       </div>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 pb-20 pt-12 sm:px-8 sm:pb-28">
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-20 pt-12 sm:px-8 sm:pb-28">
         <div className="hero-rise max-w-2xl space-y-6">
           <div
             aria-hidden

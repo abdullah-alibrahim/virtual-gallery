@@ -14,8 +14,11 @@ export interface UpdateProfileInput {
   readonly bio: string;
   readonly statement: string;
   readonly location: string | null;
+  readonly avatarUrl?: string | null;
+  readonly coverUrl?: string | null;
   readonly socials: {
     readonly website?: string;
+    readonly facebook?: string;
     readonly instagram?: string;
     readonly twitter?: string;
     readonly linkedin?: string;
@@ -65,9 +68,18 @@ export async function updateArtistProfile(
       bio: input.bio.trim(),
       statement: input.statement.trim(),
       location: input.location?.trim() || null,
+      ...(input.avatarUrl !== undefined
+        ? { avatarUrl: input.avatarUrl?.trim() || null }
+        : {}),
+      ...(input.coverUrl !== undefined
+        ? { coverUrl: input.coverUrl?.trim() || null }
+        : {}),
       socials: {
         ...(input.socials.website
           ? { website: input.socials.website.trim() }
+          : {}),
+        ...(input.socials.facebook
+          ? { facebook: input.socials.facebook.trim() }
           : {}),
         ...(input.socials.instagram
           ? { instagram: input.socials.instagram.trim() }

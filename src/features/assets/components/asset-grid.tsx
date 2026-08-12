@@ -40,7 +40,8 @@ export function AssetGrid({ workspaceId }: { workspaceId: string }) {
 
   if (!assets) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <Skeleton className="aspect-[4/3] w-full" />
         <Skeleton className="aspect-[4/3] w-full" />
         <Skeleton className="aspect-[4/3] w-full" />
         <Skeleton className="aspect-[4/3] w-full" />
@@ -59,7 +60,7 @@ export function AssetGrid({ workspaceId }: { workspaceId: string }) {
   }
 
   return (
-    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {assets.map((asset) => (
         <li
           key={asset.id}

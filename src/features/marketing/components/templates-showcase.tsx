@@ -42,7 +42,7 @@ export function TemplatesShowcase() {
   );
 
   return (
-    <section className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-6 py-12 pb-24 sm:px-8 sm:py-16 sm:pb-28">
+    <section className="mx-auto flex w-full max-w-7xl flex-col gap-16 px-4 py-12 pb-24 sm:px-8 sm:py-16 sm:pb-28">
       <div className="page-enter grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
         <div className="flex max-w-2xl flex-col gap-5">
           <p className="font-serif text-5xl leading-none tracking-tight text-foreground/25 sm:text-6xl">

@@ -24,10 +24,13 @@ export function GalleryLights({
   template,
   quality,
   cinematic = false,
+  /** Visitor night / evening: lower ambient, warmer key, quieter wash. */
+  eveningMode = false,
 }: {
   template: SceneTemplate;
   quality: GalleryQuality;
   cinematic?: boolean;
+  eveningMode?: boolean;
 }) {
   const lighting = template.lighting;
   const materials =
@@ -42,7 +45,7 @@ export function GalleryLights({
   const cinematicTier = cinematic || quality === "marketing";
   // Walk: stronger key, quieter ambient → paintings hold local spot contrast.
   const keyScale =
-    quality === "edit"
+    (quality === "edit"
       ? 0.78
       : quality === "mobile"
         ? 0.82
@@ -50,25 +53,30 @@ export function GalleryLights({
           ? 0.94
           : quality === "walk"
             ? 0.9
-            : 0.84;
+            : 0.84) * (eveningMode ? 0.82 : 1);
   const castShadow = quality === "walk" || quality === "marketing";
   const mapSize = castShadow ? 2048 : 512;
   const ambientScale =
-    quality === "edit"
+    (quality === "edit"
       ? 0.95
       : cinematicTier
         ? 0.7
         : quality === "walk"
           ? 0.72
-          : 0.9;
+          : 0.9) * (eveningMode ? 0.42 : 1);
   const hemiScale =
-    cinematicTier
+    (cinematicTier
       ? 0.8
       : quality === "walk"
         ? 0.76
         : quality === "edit"
           ? 0.9
-          : 1;
+          : 1) * (eveningMode ? 0.48 : 1);
+  const keyColor = eveningMode ? "#ffc98a" : key.color;
+  const fillColor = eveningMode ? "#6a7a92" : fill.color;
+  const ambientColor = eveningMode ? "#1a1520" : lighting.ambient.color;
+  const hemiSky = eveningMode ? "#3a3348" : hemi.skyColor;
+  const hemiGround = eveningMode ? "#0e0c0a" : hemi.groundColor;
 
   const shadowHalf = useMemo(
     () => shadowFrustumHalf(template.walkBounds),
@@ -78,17 +86,17 @@ export function GalleryLights({
   return (
     <>
       <ambientLight
-        color={lighting.ambient.color}
+        color={ambientColor}
         intensity={lighting.ambient.intensity * ambientScale}
       />
       <hemisphereLight
-        color={hemi.skyColor}
-        groundColor={hemi.groundColor}
+        color={hemiSky}
+        groundColor={hemiGround}
         intensity={hemi.intensity * hemiScale}
       />
       <directionalLight
-        color={key.color}
-        intensity={key.intensity * keyScale}
+        color={keyColor}
+        intensity={key.intensity * keyScale * (eveningMode ? 1.05 : 1)}
         position={[key.position[0], key.position[1], key.position[2]]}
         castShadow={castShadow}
         shadow-mapSize-width={mapSize}
@@ -104,22 +112,28 @@ export function GalleryLights({
         shadow-radius={castShadow ? 4 : 1}
       />
       <directionalLight
-        color={fill.color}
-        intensity={fill.intensity * keyScale * (cinematicTier ? 0.98 : 0.92)}
+        color={fillColor}
+        intensity={
+          fill.intensity *
+          keyScale *
+          (cinematicTier ? 0.98 : 0.92) *
+          (eveningMode ? 0.55 : 1)
+        }
         position={[fill.position[0], fill.position[1], fill.position[2]]}
       />
       {rim ? (
         <directionalLight
-          color={rim.color}
+          color={eveningMode ? "#c4a882" : rim.color}
           intensity={
             rim.intensity *
-            (quality === "mobile" ? 0.55 : cinematicTier ? 0.88 : 0.75)
+            (quality === "mobile" ? 0.55 : cinematicTier ? 0.88 : 0.75) *
+            (eveningMode ? 0.7 : 1)
           }
           position={[rim.position[0], rim.position[1], rim.position[2]]}
         />
       ) : null}
       {quality === "walk" ? (
-        <GalleryWallWash template={template} />
+        <GalleryWallWash template={template} eveningMode={eveningMode} />
       ) : null}
     </>
   );
@@ -129,7 +143,13 @@ export function GalleryLights({
  * Soft museum wall wash for walk — complements per-artwork spots without the
  * marketing hero ShowWash intensity.
  */
-function GalleryWallWash({ template }: { template: SceneTemplate }) {
+function GalleryWallWash({
+  template,
+  eveningMode = false,
+}: {
+  template: SceneTemplate;
+  eveningMode?: boolean;
+}) {
   const lightRef = useRef<SpotLightImpl>(null);
   const targetRef = useRef<Object3D>(null);
   const north =
@@ -149,8 +169,8 @@ function GalleryWallWash({ template }: { template: SceneTemplate }) {
     <>
       <spotLight
         ref={lightRef}
-        color="#fff6ea"
-        intensity={1.35}
+        color={eveningMode ? "#ffb56e" : "#fff6ea"}
+        intensity={eveningMode ? 0.95 : 1.35}
         angle={0.62}
         penumbra={0.82}
         distance={22}

@@ -93,6 +93,7 @@ export interface ArtistProfile {
 
 export interface ArtistSocials {
   readonly website?: string;
+  readonly facebook?: string;
   readonly instagram?: string;
   readonly twitter?: string;
   readonly linkedin?: string;

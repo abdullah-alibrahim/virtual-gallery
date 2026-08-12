@@ -14,7 +14,11 @@ export async function updateGallerySettings(input: {
   settings: Partial<
     Pick<
       GallerySettings,
-      "lightingPreset" | "walkSpeed" | "showTitles" | "allowZoom"
+      | "lightingPreset"
+      | "walkSpeed"
+      | "showTitles"
+      | "allowZoom"
+      | "eveningTour"
     >
   >;
 }): Promise<void> {
@@ -60,6 +64,39 @@ export async function updateGallerySettings(input: {
   }
   if (input.settings.allowZoom !== undefined) {
     patch["settings.allowZoom"] = Boolean(input.settings.allowZoom);
+  }
+  if (input.settings.eveningTour !== undefined) {
+    const tour = input.settings.eveningTour;
+    if (tour === null) {
+      patch["settings.eveningTour"] = null;
+    } else {
+      const startMs = Date.parse(tour.startAt);
+      const endMs = Date.parse(tour.endAt);
+      if (
+        !tour.enabled &&
+        (!Number.isFinite(startMs) || !Number.isFinite(endMs))
+      ) {
+        patch["settings.eveningTour"] = {
+          enabled: false,
+          startAt: tour.startAt || new Date().toISOString(),
+          endAt: tour.endAt || new Date().toISOString(),
+          inviteCode: tour.inviteCode ?? null,
+        };
+      } else if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
+        throw new ValidationError("Invalid evening tour window");
+      } else {
+        const code = tour.inviteCode?.trim() || null;
+        if (code && code.length > 64) {
+          throw new ValidationError("Invite code too long");
+        }
+        patch["settings.eveningTour"] = {
+          enabled: Boolean(tour.enabled),
+          startAt: new Date(startMs).toISOString(),
+          endAt: new Date(endMs).toISOString(),
+          inviteCode: code,
+        };
+      }
+    }
   }
 
   if (Object.keys(patch).length <= 2) {

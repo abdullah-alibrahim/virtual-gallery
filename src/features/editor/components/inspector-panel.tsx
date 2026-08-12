@@ -85,6 +85,9 @@ export function InspectorPanel() {
     (s) => s.updateArchitectureOverrides,
   );
   const applyLightingPreset = useEditorStore((s) => s.applyLightingPreset);
+  const updateGallerySettingsPatch = useEditorStore(
+    (s) => s.updateGallerySettingsPatch,
+  );
 
   const artwork = artworks.find((a) => a.id === selectedArtworkId) ?? null;
   const resolved =
@@ -735,6 +738,101 @@ export function InspectorPanel() {
           </Section>
         ) : null}
 
+        <Section title={t("editor.eveningTour")}>
+          <PropertyRow label={t("editor.eveningTourEnabled")}>
+            <EditorSelect
+              value={gallery?.settings.eveningTour?.enabled ? "on" : "off"}
+              onChange={(e) => {
+                const enabled = e.target.value === "on";
+                const current = gallery?.settings.eveningTour;
+                updateGallerySettingsPatch({
+                  eveningTour: {
+                    enabled,
+                    startAt:
+                      current?.startAt ??
+                      new Date().toISOString().slice(0, 19) + "Z",
+                    endAt:
+                      current?.endAt ??
+                      new Date(Date.now() + 7 * 864e5)
+                        .toISOString()
+                        .slice(0, 19) + "Z",
+                    inviteCode: current?.inviteCode ?? "dusk",
+                  },
+                });
+              }}
+            >
+              <option value="on">{t("editor.on")}</option>
+              <option value="off">{t("editor.off")}</option>
+            </EditorSelect>
+          </PropertyRow>
+          <PropertyRow label={t("editor.eveningStart")}>
+            <EditorField
+              value={gallery?.settings.eveningTour?.startAt ?? ""}
+              placeholder="2026-08-11T18:00:00.000Z"
+              onChange={(e) => {
+                const current = gallery?.settings.eveningTour;
+                updateGallerySettingsPatch({
+                  eveningTour: {
+                    enabled: current?.enabled ?? false,
+                    startAt: e.target.value,
+                    endAt: current?.endAt ?? e.target.value,
+                    inviteCode: current?.inviteCode ?? null,
+                  },
+                });
+              }}
+            />
+          </PropertyRow>
+          <PropertyRow label={t("editor.eveningEnd")}>
+            <EditorField
+              value={gallery?.settings.eveningTour?.endAt ?? ""}
+              placeholder="2026-08-18T23:00:00.000Z"
+              onChange={(e) => {
+                const current = gallery?.settings.eveningTour;
+                updateGallerySettingsPatch({
+                  eveningTour: {
+                    enabled: current?.enabled ?? false,
+                    startAt: current?.startAt ?? e.target.value,
+                    endAt: e.target.value,
+                    inviteCode: current?.inviteCode ?? null,
+                  },
+                });
+              }}
+            />
+          </PropertyRow>
+          <PropertyRow label={t("editor.eveningInviteCode")}>
+            <EditorField
+              value={gallery?.settings.eveningTour?.inviteCode ?? ""}
+              placeholder="dusk"
+              onChange={(e) => {
+                const current = gallery?.settings.eveningTour;
+                updateGallerySettingsPatch({
+                  eveningTour: {
+                    enabled: current?.enabled ?? false,
+                    startAt:
+                      current?.startAt ?? new Date().toISOString(),
+                    endAt: current?.endAt ?? new Date().toISOString(),
+                    inviteCode: e.target.value || null,
+                  },
+                });
+              }}
+            />
+          </PropertyRow>
+          {gallery?.settings.eveningTour?.inviteCode ? (
+            <button
+              type="button"
+              className="mt-1 self-start text-[11px] text-[color:var(--editor-muted)] hover:text-[color:var(--editor-foreground)]"
+              onClick={() => {
+                const code = gallery.settings.eveningTour?.inviteCode;
+                if (!code || typeof window === "undefined") return;
+                const url = `${window.location.origin}/g/${gallery.slug}?evening=${encodeURIComponent(code)}`;
+                void navigator.clipboard.writeText(url);
+              }}
+            >
+              {t("editor.copyEveningInvite")}
+            </button>
+          ) : null}
+        </Section>
+
         {!artwork ? (
           <p className="px-1 py-6 text-center text-xs leading-relaxed text-[color:var(--editor-muted)]">
             {artworks.length === 0
@@ -1277,6 +1375,192 @@ export function InspectorPanel() {
                   }
                 />
               </PropertyRow>
+            </Section>
+
+            <Section title={t("editor.innerWorld")}>
+              <PropertyRow label={t("editor.voiceNoteUrl")}>
+                <EditorField
+                  value={artwork.media.audioUrl ?? ""}
+                  placeholder="https://…"
+                  onChange={(e) =>
+                    updateArtwork(artwork.id, {
+                      media: {
+                        ...artwork.media,
+                        audioUrl: e.target.value.trim() || null,
+                      },
+                    })
+                  }
+                />
+              </PropertyRow>
+              <PropertyRow label={t("editor.innerWorldType")}>
+                <EditorSelect
+                  value={artwork.media.innerWorld?.type ?? "none"}
+                  onChange={(e) => {
+                    const type = e.target.value;
+                    if (type === "none") {
+                      updateArtwork(artwork.id, {
+                        media: { ...artwork.media, innerWorld: null },
+                      });
+                      return;
+                    }
+                    if (type === "text") {
+                      updateArtwork(artwork.id, {
+                        media: {
+                          ...artwork.media,
+                          innerWorld: {
+                            type: "text",
+                            title: artwork.title,
+                            body: artwork.description || "",
+                          },
+                        },
+                      });
+                      return;
+                    }
+                    if (type === "video") {
+                      updateArtwork(artwork.id, {
+                        media: {
+                          ...artwork.media,
+                          innerWorld: {
+                            type: "video",
+                            url: artwork.media.videoUrl ?? "",
+                            title: artwork.title,
+                          },
+                        },
+                      });
+                      return;
+                    }
+                    updateArtwork(artwork.id, {
+                      media: {
+                        ...artwork.media,
+                        innerWorld: {
+                          type: "room",
+                          title: artwork.title,
+                          body: "",
+                          href: "",
+                        },
+                      },
+                    });
+                  }}
+                >
+                  <option value="none">{t("editor.innerWorldNone")}</option>
+                  <option value="text">{t("editor.innerWorldText")}</option>
+                  <option value="video">{t("editor.innerWorldVideo")}</option>
+                  <option value="room">{t("editor.innerWorldRoom")}</option>
+                </EditorSelect>
+              </PropertyRow>
+              {artwork.media.innerWorld ? (
+                <>
+                  <PropertyRow label={t("editor.innerWorldTitle")}>
+                    <EditorField
+                      value={
+                        artwork.media.innerWorld.type === "text"
+                          ? artwork.media.innerWorld.title
+                          : artwork.media.innerWorld.title ?? ""
+                      }
+                      onChange={(e) => {
+                        const world = artwork.media.innerWorld;
+                        if (!world) return;
+                        if (world.type === "text") {
+                          updateArtwork(artwork.id, {
+                            media: {
+                              ...artwork.media,
+                              innerWorld: { ...world, title: e.target.value },
+                            },
+                          });
+                        } else {
+                          updateArtwork(artwork.id, {
+                            media: {
+                              ...artwork.media,
+                              innerWorld: { ...world, title: e.target.value },
+                            },
+                          });
+                        }
+                      }}
+                    />
+                  </PropertyRow>
+                  {artwork.media.innerWorld.type === "text" ? (
+                    <div className="grid grid-cols-[88px_1fr] gap-2 text-xs">
+                      <span className="pt-2 text-[color:var(--editor-muted)]">
+                        {t("editor.innerWorldBody")}
+                      </span>
+                      <EditorTextarea
+                        value={artwork.media.innerWorld.body}
+                        onChange={(e) => {
+                          const world = artwork.media.innerWorld;
+                          if (!world || world.type !== "text") return;
+                          updateArtwork(artwork.id, {
+                            media: {
+                              ...artwork.media,
+                              innerWorld: { ...world, body: e.target.value },
+                            },
+                          });
+                        }}
+                      />
+                    </div>
+                  ) : null}
+                  {artwork.media.innerWorld.type === "video" ? (
+                    <PropertyRow label={t("editor.innerWorldUrl")}>
+                      <EditorField
+                        value={artwork.media.innerWorld.url}
+                        onChange={(e) => {
+                          const world = artwork.media.innerWorld;
+                          if (!world || world.type !== "video") return;
+                          updateArtwork(artwork.id, {
+                            media: {
+                              ...artwork.media,
+                              innerWorld: { ...world, url: e.target.value },
+                            },
+                          });
+                        }}
+                      />
+                    </PropertyRow>
+                  ) : null}
+                  {artwork.media.innerWorld.type === "room" ? (
+                    <>
+                      <PropertyRow label={t("editor.innerWorldUrl")}>
+                        <EditorField
+                          value={artwork.media.innerWorld.href ?? ""}
+                          placeholder="/demo/harbor"
+                          onChange={(e) => {
+                            const world = artwork.media.innerWorld;
+                            if (!world || world.type !== "room") return;
+                            updateArtwork(artwork.id, {
+                              media: {
+                                ...artwork.media,
+                                innerWorld: {
+                                  ...world,
+                                  href: e.target.value || undefined,
+                                },
+                              },
+                            });
+                          }}
+                        />
+                      </PropertyRow>
+                      <div className="grid grid-cols-[88px_1fr] gap-2 text-xs">
+                        <span className="pt-2 text-[color:var(--editor-muted)]">
+                          {t("editor.innerWorldBody")}
+                        </span>
+                        <EditorTextarea
+                          value={artwork.media.innerWorld.body ?? ""}
+                          onChange={(e) => {
+                            const world = artwork.media.innerWorld;
+                            if (!world || world.type !== "room") return;
+                            updateArtwork(artwork.id, {
+                              media: {
+                                ...artwork.media,
+                                innerWorld: {
+                                  ...world,
+                                  body: e.target.value || undefined,
+                                },
+                              },
+                            });
+                          }}
+                        />
+                      </div>
+                    </>
+                  ) : null}
+                </>
+              ) : null}
             </Section>
           </>
         )}

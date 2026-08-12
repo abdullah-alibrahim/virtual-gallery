@@ -18,10 +18,12 @@ export type {
 export type {
   Artwork,
   ArtworkCommerce,
+  ArtworkInnerWorld,
   ArtworkLighting,
   ArtworkMedia,
   ArtworkPlacement,
   Availability,
+  EveningTourSettings,
   Gallery,
   GalleryArchitectureOverrides,
   GalleryCounters,

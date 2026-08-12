@@ -1,7 +1,13 @@
 "use client";
 
-import { Canvas } from "@react-three/fiber";
-import { lazy, Suspense, useEffect } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
+import {
+  Component,
+  lazy,
+  Suspense,
+  useEffect,
+  type ReactNode,
+} from "react";
 import {
   ACESFilmicToneMapping,
   Color,
@@ -23,9 +29,19 @@ import { GalleryLights } from "./gallery-lights";
 import type { GalleryQuality } from "./gallery-quality";
 import { SelectionRing } from "./selection-ring";
 import { TemplateShell } from "./template-shell";
+import { VisitorFloorShadow } from "./visitor-shadow";
+import { WalkPlaceSoundBridge } from "./walk-place-sound";
 
+/** Soft-fail: walk/edit still render if the postprocessing chunk is stale/missing. */
 const GalleryEffects = lazy(() =>
-  import("./gallery-effects").then((m) => ({ default: m.GalleryEffects })),
+  import("./gallery-effects")
+    .then((m) => ({ default: m.GalleryEffects }))
+    .catch((err) => {
+      console.warn("[gallery] effects chunk failed to load", err);
+      return { default: function GalleryEffectsUnavailable() {
+        return null;
+      } };
+    }),
 );
 
 export interface SceneRootProps {
@@ -38,6 +54,14 @@ export interface SceneRootProps {
   readonly mobile?: boolean;
   /** Disable bloom / heavy post when the user prefers reduced motion. */
   readonly reducedMotion?: boolean;
+  /** Visitor night / evening lighting. */
+  readonly eveningMode?: boolean;
+  /** Soft place sound + footsteps while walking. */
+  readonly placeSoundEnabled?: boolean;
+  /** Master mute for place / night ambience driven inside the canvas. */
+  readonly soundMuted?: boolean;
+  /** Soft elliptical visitor shadow on the floor (walk only). */
+  readonly visitorShadow?: boolean;
   readonly selectedArtworkId?: string | null;
   /** Editor-only: muted selection when placement is locked. */
   readonly selectedArtworkLocked?: boolean;
@@ -58,6 +82,10 @@ export function SceneRoot({
   orbitEnabled = false,
   mobile = false,
   reducedMotion = false,
+  eveningMode = false,
+  placeSoundEnabled = false,
+  soundMuted = false,
+  visitorShadow = false,
   selectedArtworkId = null,
   selectedArtworkLocked = false,
   onSelectArtwork,
@@ -105,7 +133,10 @@ export function SceneRoot({
     ? [spawn.position[0] + 2.5, 2.2, spawn.position[2] + 4.5]
     : [spawn.position[0], spawn.position[1], spawn.position[2]];
 
-  const clearColor = template.environment.background;
+  const dayClear = template.environment.background;
+  const clearColor = eveningMode ? darkenHex(dayClear, 0.55) : dayClear;
+  const exposure =
+    template.environment.exposure * (eveningMode ? 0.78 : 1);
 
   return (
     <div
@@ -132,7 +163,7 @@ export function SceneRoot({
           antialias: quality !== "mobile",
           powerPreference: quality === "mobile" ? "default" : "high-performance",
           toneMapping,
-          toneMappingExposure: template.environment.exposure,
+          toneMappingExposure: exposure,
           // R3F defaults to alpha:true; an empty/suspended scene would then
           // punch a hole through to the dark viewer chrome.
           alpha: false,
@@ -158,19 +189,20 @@ export function SceneRoot({
             gl.shadowMap.enabled = true;
             gl.shadowMap.type = PCFSoftShadowMap;
           }
-          const fog = template.environment.fog;
-          if (fog) {
-            scene.fog = new Fog(fog.color, fog.near, fog.far);
-          } else {
-            scene.fog = null;
-          }
           onReady?.();
         }}
       >
+        <EveningAtmosphereSync
+          eveningMode={eveningMode}
+          dayClear={dayClear}
+          dayExposure={template.environment.exposure}
+          fog={template.environment.fog ?? null}
+        />
         <GalleryLights
           template={template}
           quality={quality}
           cinematic={quality === "walk"}
+          eveningMode={eveningMode}
         />
         <GalleryEnvironment quality={quality} category={template.category} />
 
@@ -202,14 +234,27 @@ export function SceneRoot({
           </group>
         ))}
 
+        {walkEnabled && !orbitEnabled && visitorShadow ? (
+          <VisitorFloorShadow enabled={!mobile} />
+        ) : null}
+
+        {walkEnabled && !orbitEnabled ? (
+          <WalkPlaceSoundBridge
+            enabled={placeSoundEnabled}
+            muted={soundMuted || reducedMotion}
+          />
+        ) : null}
+
         {enableEffects ? (
-          <Suspense fallback={null}>
-            <GalleryEffects
-              quality={quality}
-              reducedMotion={reducedMotion}
-              toneMapping={template.environment.toneMapping}
-            />
-          </Suspense>
+          <EffectsErrorBoundary>
+            <Suspense fallback={null}>
+              <GalleryEffects
+                quality={quality}
+                reducedMotion={reducedMotion}
+                toneMapping={template.environment.toneMapping}
+              />
+            </Suspense>
+          </EffectsErrorBoundary>
         ) : null}
 
         {walkEnabled && !orbitEnabled ? (
@@ -228,4 +273,78 @@ export function SceneRoot({
       </Canvas>
     </div>
   );
+}
+
+function EveningAtmosphereSync({
+  eveningMode,
+  dayClear,
+  dayExposure,
+  fog,
+}: {
+  eveningMode: boolean;
+  dayClear: string;
+  dayExposure: number;
+  fog: { color: string; near: number; far: number } | null;
+}) {
+  const { scene, gl } = useThree();
+
+  useEffect(() => {
+    const clear = eveningMode ? darkenHex(dayClear, 0.55) : dayClear;
+    scene.background = new Color(clear);
+    gl.setClearColor(clear, 1);
+    gl.toneMappingExposure = dayExposure * (eveningMode ? 0.78 : 1);
+
+    if (fog) {
+      scene.fog = new Fog(
+        eveningMode ? darkenHex(fog.color, 0.45) : fog.color,
+        fog.near,
+        eveningMode ? fog.far * 0.85 : fog.far,
+      );
+    } else if (eveningMode) {
+      scene.fog = new Fog(clear, 8, 42);
+    } else {
+      scene.fog = null;
+    }
+  }, [dayClear, dayExposure, eveningMode, fog, gl, scene]);
+
+  return null;
+}
+
+/** R3F-safe: never fall back to DOM UI inside the Canvas tree. */
+class EffectsErrorBoundary extends Component<
+  { children: ReactNode },
+  { failed: boolean }
+> {
+  override state = { failed: false };
+
+  static getDerivedStateFromError(): { failed: boolean } {
+    return { failed: true };
+  }
+
+  override componentDidCatch(error: Error) {
+    console.warn("[gallery] effects disabled after runtime error", error);
+  }
+
+  override render() {
+    if (this.state.failed) return null;
+    return this.props.children;
+  }
+}
+
+/** Darken a CSS hex for evening clear/fog without pulling a color lib. */
+function darkenHex(hex: string, amount: number): string {
+  const raw = hex.replace("#", "").trim();
+  const full =
+    raw.length === 3
+      ? raw
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : raw.slice(0, 6);
+  if (!/^[0-9a-fA-F]{6}$/.test(full)) return hex;
+  const n = Number.parseInt(full, 16);
+  const r = Math.max(0, Math.round(((n >> 16) & 255) * (1 - amount)));
+  const g = Math.max(0, Math.round(((n >> 8) & 255) * (1 - amount)));
+  const b = Math.max(0, Math.round((n & 255) * (1 - amount)));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
 }

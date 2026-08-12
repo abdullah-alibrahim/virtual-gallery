@@ -152,14 +152,14 @@ export function EditorToolbar() {
   }
 
   return (
-    <div className="flex w-full items-center gap-2 text-sm">
-      <div className="min-w-0">
+    <div className="flex w-full min-w-0 items-center gap-1.5 text-sm sm:gap-2">
+      <div className="min-w-0 shrink">
         <p className="hidden text-[9px] tracking-[0.16em] text-[color:var(--editor-brass)]/70 uppercase sm:block">
           {t("editor.studio")}
         </p>
         <Link
           href="/dashboard"
-          className="max-w-[10rem] truncate font-serif text-base tracking-tight text-[color:var(--editor-foreground)] sm:max-w-[16rem]"
+          className="block max-w-[8rem] truncate font-serif text-base tracking-tight text-[color:var(--editor-foreground)] sm:max-w-[14rem] lg:max-w-[18rem]"
           title={gallery?.title ?? t("editor.gallery")}
         >
           {gallery?.title ?? t("editor.gallery")}
@@ -225,7 +225,7 @@ export function EditorToolbar() {
 
       <button
         type="button"
-        className="text-xs text-[color:var(--editor-muted)] hover:text-[color:var(--editor-foreground)]"
+        className="hidden shrink-0 text-xs text-[color:var(--editor-muted)] hover:text-[color:var(--editor-foreground)] md:inline"
         onClick={() => setEditorPanel("assetsCollapsed", !assetsCollapsed)}
       >
         {assetsCollapsed ? t("editor.showAssets") : t("editor.hideAssets")}

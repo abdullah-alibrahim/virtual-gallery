@@ -28,4 +28,27 @@ describe("resolveArtistSocialLinks", () => {
       "https://x.com/hall",
     );
   });
+
+  it("maps a Facebook URL to the facebook kind", () => {
+    const links = resolveArtistSocialLinks({
+      website: "https://www.facebook.com/ismail.rifai.3",
+    });
+    expect(links.find((l) => l.kind === "facebook")?.href).toBe(
+      "https://www.facebook.com/ismail.rifai.3",
+    );
+    expect(links.find((l) => l.kind === "website")).toBeUndefined();
+  });
+
+  it("uses a first-class facebook field without dropping website", () => {
+    const links = resolveArtistSocialLinks({
+      facebook: "https://www.facebook.com/ismail.rifai.3",
+      website: "https://ismailrifai.example",
+    });
+    expect(links.find((l) => l.kind === "facebook")?.href).toBe(
+      "https://www.facebook.com/ismail.rifai.3",
+    );
+    expect(links.find((l) => l.kind === "website")?.href).toBe(
+      "https://ismailrifai.example",
+    );
+  });
 });

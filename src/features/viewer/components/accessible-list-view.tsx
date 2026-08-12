@@ -44,7 +44,7 @@ export function AccessibleListView({
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,oklch(0.24_0.03_75_/0.45),transparent_55%),radial-gradient(ellipse_at_bottom_right,oklch(0.18_0.015_55_/0.3),transparent_45%)]"
       />
 
-      <div className="relative mx-auto w-full max-w-3xl px-6 py-12 md:py-16">
+      <div className="relative mx-auto w-full max-w-4xl px-4 py-12 sm:px-6 md:py-16">
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-2">

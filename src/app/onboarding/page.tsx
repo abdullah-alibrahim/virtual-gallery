@@ -34,19 +34,19 @@ export default async function OnboardingPage() {
   const initialSlug = String(profile.data()?.slug ?? "artist");
 
   return (
-    <div className="relative flex min-h-dvh flex-col overflow-hidden">
+    <div className="relative flex min-h-dvh w-full flex-col overflow-x-hidden">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="atmosphere-drift absolute -inset-[8%] bg-[radial-gradient(ellipse_70%_50%_at_80%_0%,oklch(0.94_0.02_90),transparent),radial-gradient(ellipse_40%_35%_at_10%_90%,oklch(0.92_0.02_210_/0.14),transparent)]" />
         <div className="absolute inset-0 surface-grain opacity-50" />
       </div>
       <OnboardingRoomPanel />
-      <header className="relative z-10 flex items-center justify-between gap-4 px-6 py-5 pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-8">
+      <header className="relative z-10 flex w-full items-center justify-between gap-4 px-4 py-5 pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-8">
         <Link href="/" className="font-serif text-xl tracking-tight sm:text-2xl">
           {siteConfig.name}
         </Link>
         <LanguageSwitcher />
       </header>
-      <main className="relative z-10 flex flex-1 items-center justify-center px-6 py-16 sm:px-8 lg:justify-start lg:pl-16 xl:pl-24">
+      <main className="relative z-10 flex w-full flex-1 items-center justify-center px-4 py-16 sm:px-8 lg:justify-start lg:ps-16 xl:ps-24">
         <OnboardingForm initialName={initialName} initialSlug={initialSlug} />
       </main>
     </div>

@@ -53,7 +53,7 @@ export default async function LandingPage() {
         >
           <div className="atmosphere-drift absolute -inset-[8%] bg-[radial-gradient(ellipse_55%_45%_at_12%_15%,oklch(0.92_0.02_85_/0.4),transparent),radial-gradient(ellipse_40%_35%_at_92%_75%,oklch(0.9_0.02_210_/0.14),transparent)]" />
         </div>
-        <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-20 sm:px-8 sm:py-24">
+        <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 py-20 sm:px-8 sm:py-24">
           <div className="max-w-2xl page-enter space-y-4">
             <div aria-hidden className="rule-grow h-px w-14 bg-foreground/30" />
             <p className="text-xs tracking-[0.22em] text-muted-foreground uppercase">
@@ -106,7 +106,7 @@ export default async function LandingPage() {
       </section>
 
       <section className="relative z-10 border-t border-border">
-        <div className="mx-auto grid w-full max-w-6xl gap-14 px-6 py-24 md:grid-cols-[1.05fr_0.95fr] md:items-end md:gap-20 sm:px-8 sm:py-28">
+        <div className="mx-auto grid w-full max-w-7xl gap-14 px-4 py-24 md:grid-cols-[1.05fr_0.95fr] md:items-end md:gap-20 sm:px-8 sm:py-28">
           <div className="page-enter space-y-6">
             <div aria-hidden className="rule-grow h-px w-14 bg-foreground/30" />
             <p className="text-xs tracking-[0.22em] text-muted-foreground uppercase">
@@ -140,7 +140,7 @@ export default async function LandingPage() {
           aria-hidden
           className="pointer-events-none absolute inset-0 surface-grain opacity-70"
         />
-        <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-24 sm:px-8 sm:py-28">
+        <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-24 sm:px-8 sm:py-28">
           <div className="max-w-2xl page-enter space-y-4">
             <div aria-hidden className="rule-grow h-px w-14 bg-foreground/30" />
             <p className="text-xs tracking-[0.22em] text-muted-foreground uppercase">
@@ -163,7 +163,7 @@ export default async function LandingPage() {
       </section>
 
       <section className="relative z-10 border-t border-border">
-        <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-14 px-6 py-24 sm:px-8 sm:py-28">
+        <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-14 px-4 py-24 sm:px-8 sm:py-28">
           <div className="max-w-2xl page-enter space-y-4">
             <div aria-hidden className="rule-grow h-px w-14 bg-foreground/30" />
             <h2 className="font-serif text-4xl tracking-tight sm:text-5xl">

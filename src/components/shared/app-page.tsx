@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 
 /**
  * Spacious content frame for authenticated studio routes.
- * Keeps header → body rhythm consistent without cramping chrome.
+ * Default fills the main column (sidebar + topbar shell); use `narrow` for
+ * focused forms so they keep a readable measure.
  */
 export function AppPage({
   children,
@@ -19,8 +20,8 @@ export function AppPage({
   return (
     <main
       className={cn(
-        "relative mx-auto flex w-full flex-col gap-10 px-6 py-10 sm:px-8 sm:py-12 lg:py-14",
-        narrow ? "max-w-3xl" : "max-w-6xl",
+        "relative flex w-full min-w-0 flex-col gap-8 px-4 py-8 sm:gap-10 sm:px-6 sm:py-10 lg:px-8 lg:py-12",
+        narrow ? "mx-auto max-w-3xl" : "max-w-none",
         className,
       )}
     >
@@ -28,7 +29,9 @@ export function AppPage({
         aria-hidden
         className="pointer-events-none absolute inset-x-0 -top-4 h-48 app-atmosphere opacity-80"
       />
-      <div className="relative flex flex-col gap-10">{children}</div>
+      <div className="relative flex w-full min-w-0 flex-col gap-8 sm:gap-10">
+        {children}
+      </div>
     </main>
   );
 }

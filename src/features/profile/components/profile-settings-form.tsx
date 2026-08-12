@@ -20,7 +20,10 @@ export function ProfileSettingsForm({ profile }: { profile: ArtistProfile }) {
   const [bio, setBio] = useState(profile.bio);
   const [statement, setStatement] = useState(profile.statement);
   const [location, setLocation] = useState(profile.location ?? "");
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl ?? "");
+  const [coverUrl, setCoverUrl] = useState(profile.coverUrl ?? "");
   const [website, setWebsite] = useState(profile.socials.website ?? "");
+  const [facebook, setFacebook] = useState(profile.socials.facebook ?? "");
   const [instagram, setInstagram] = useState(profile.socials.instagram ?? "");
   const [twitter, setTwitter] = useState(profile.socials.twitter ?? "");
   const [linkedin, setLinkedin] = useState(profile.socials.linkedin ?? "");
@@ -42,8 +45,11 @@ export function ProfileSettingsForm({ profile }: { profile: ArtistProfile }) {
           bio,
           statement,
           location: location.trim() || null,
+          avatarUrl: avatarUrl.trim() || null,
+          coverUrl: coverUrl.trim() || null,
           socials: {
             ...(website.trim() ? { website: website.trim() } : {}),
+            ...(facebook.trim() ? { facebook: facebook.trim() } : {}),
             ...(instagram.trim() ? { instagram: instagram.trim() } : {}),
             ...(twitter.trim() ? { twitter: twitter.trim() } : {}),
             ...(linkedin.trim() ? { linkedin: linkedin.trim() } : {}),
@@ -125,9 +131,36 @@ export function ProfileSettingsForm({ profile }: { profile: ArtistProfile }) {
           disabled={busy}
         />
       </Field>
+      <Field label={t("settings.avatarUrl")} htmlFor="avatarUrl">
+        <Input
+          id="avatarUrl"
+          value={avatarUrl}
+          onChange={(e) => setAvatarUrl(e.target.value)}
+          placeholder="/artists/… or https://"
+          disabled={busy}
+        />
+      </Field>
+      <Field label={t("settings.coverUrl")} htmlFor="coverUrl">
+        <Input
+          id="coverUrl"
+          value={coverUrl}
+          onChange={(e) => setCoverUrl(e.target.value)}
+          placeholder="/artists/… or https://"
+          disabled={busy}
+        />
+      </Field>
 
       <div className="space-y-4 border-t border-border pt-6">
         <p className="text-sm text-muted-foreground">{t("settings.socialsHint")}</p>
+        <Field label={t("settings.facebook")} htmlFor="facebook">
+          <Input
+            id="facebook"
+            value={facebook}
+            onChange={(e) => setFacebook(e.target.value)}
+            placeholder="https://facebook.com/…"
+            disabled={busy}
+          />
+        </Field>
         <Field label={t("settings.website")} htmlFor="website">
           <Input
             id="website"
@@ -185,9 +218,19 @@ export function ProfileSettingsForm({ profile }: { profile: ArtistProfile }) {
         {t("settings.allowEnquiries")}
       </label>
 
-      <Button type="submit" disabled={busy}>
-        {busy ? t("editor.saving") : t("settings.saveProfile")}
-      </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit" disabled={busy}>
+          {busy ? t("editor.saving") : t("settings.saveProfile")}
+        </Button>
+        <a
+          href={`/a/${profile.slug}`}
+          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t("settings.viewPublicProfile")}
+        </a>
+      </div>
     </form>
   );
 }

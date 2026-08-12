@@ -44,8 +44,8 @@ export function AppTopbar({
 
   return (
     <>
-      <header className="flex h-16 items-center justify-between gap-4 border-b border-border bg-background/85 px-4 backdrop-blur sm:px-5 pt-[env(safe-area-inset-top)]">
-        <div className="flex items-center gap-2">
+      <header className="flex h-16 w-full shrink-0 items-center justify-between gap-3 border-b border-border bg-background/85 px-3 backdrop-blur sm:gap-4 sm:px-5 pt-[env(safe-area-inset-top)]">
+        <div className="flex min-w-0 items-center gap-2">
           <Button
             type="button"
             variant="ghost"
@@ -78,8 +78,8 @@ export function AppTopbar({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="hidden min-w-0 text-end sm:block">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <div className="hidden min-w-0 max-w-[12rem] text-end lg:max-w-[16rem] sm:block">
             <p className="truncate text-sm font-medium">{displayName}</p>
             <p className="truncate text-xs text-muted-foreground">{email}</p>
           </div>

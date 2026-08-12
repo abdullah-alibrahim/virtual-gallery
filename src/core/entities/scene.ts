@@ -1,7 +1,9 @@
 import type {
   Availability,
+  ArtworkInnerWorld,
   ArtworkLighting,
   ArtworkPlacement,
+  EveningTourSettings,
   GalleryVisibility,
 } from "./gallery";
 import type { ArtistContact, ArtistSocials } from "./workspace";
@@ -86,6 +88,8 @@ export interface SceneArtwork {
     readonly audioUrl?: string;
     readonly videoUrl?: string;
   };
+  /** Optional inner-world experience when the visitor opens this work. */
+  readonly innerWorld?: ArtworkInnerWorld;
 }
 
 export interface SceneSettings {
@@ -93,6 +97,8 @@ export interface SceneSettings {
   readonly showTitles: boolean;
   readonly allowZoom: boolean;
   readonly ambientAudioUrl?: string;
+  /** Timed evening invite — inlined at publish for zero Firestore reads. */
+  readonly eveningTour?: EveningTourSettings;
 }
 
 /**

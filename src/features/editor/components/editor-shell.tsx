@@ -27,11 +27,11 @@ export function EditorShell({
 
   return (
     <div
-      className="flex h-dvh w-dvw flex-col overflow-hidden text-[color:var(--editor-foreground)]"
+      className="flex h-dvh w-full max-w-[100vw] flex-col overflow-hidden text-[color:var(--editor-foreground)]"
       style={{ background: "var(--editor-bg)" }}
     >
       <div
-        className="flex h-12 shrink-0 items-center border-b px-3"
+        className="flex h-12 min-w-0 shrink-0 items-center overflow-x-auto border-b px-2 sm:px-3"
         style={{
           background: "var(--editor-panel)",
           borderColor: "var(--editor-border)",
@@ -40,7 +40,7 @@ export function EditorShell({
         {toolbar}
       </div>
 
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 min-w-0 flex-1">
         <aside
           className="shrink-0 overflow-hidden border-r"
           style={{

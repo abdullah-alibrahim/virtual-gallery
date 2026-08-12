@@ -14,7 +14,7 @@ export default async function AuthLayout({
   const { t } = await getTranslator();
 
   return (
-    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-[color:var(--luxury-stone)] text-foreground">
+    <div className="relative flex min-h-dvh w-full flex-col overflow-x-hidden bg-[color:var(--luxury-stone)] text-foreground">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_55%_40%_at_8%_0%,oklch(0.92_0.025_78_/0.45),transparent),radial-gradient(ellipse_40%_35%_at_96%_90%,oklch(0.9_0.02_55_/0.18),transparent)]"
@@ -24,7 +24,7 @@ export default async function AuthLayout({
         className="surface-grain pointer-events-none absolute inset-0 opacity-45"
       />
 
-      <header className="relative z-10 flex items-center justify-between border-b border-border/70 px-6 py-4">
+      <header className="relative z-10 flex w-full items-center justify-between border-b border-border/70 px-4 py-4 sm:px-6">
         <Link
           href="/"
           className="font-serif text-xl tracking-tight hover:opacity-80"
@@ -41,7 +41,7 @@ export default async function AuthLayout({
           </Link>
         </div>
       </header>
-      <main className="relative z-10 flex flex-1 items-center justify-center px-6 py-12">
+      <main className="relative z-10 flex w-full flex-1 items-center justify-center px-4 py-12 sm:px-6">
         <div className="page-enter w-full max-w-md border border-border/90 bg-background/85 p-6 shadow-none backdrop-blur-sm sm:p-8">
           <div
             aria-hidden

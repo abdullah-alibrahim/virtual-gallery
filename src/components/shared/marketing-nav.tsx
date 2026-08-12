@@ -35,7 +35,7 @@ export function MarketingNav({
   const t = useT();
 
   return (
-    <header className="relative z-20 mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-5 pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-8">
+    <header className="relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-5 pt-[max(1.25rem,env(safe-area-inset-top))] sm:gap-4 sm:px-8">
       <Link
         href="/"
         className="font-serif text-xl tracking-tight sm:text-2xl"
@@ -81,7 +81,7 @@ export function MarketingFooter({
   const t = useT();
 
   return (
-    <footer className="mx-auto flex w-full max-w-6xl flex-col gap-6 border-t border-border px-6 py-8 pb-[max(2rem,env(safe-area-inset-bottom))] text-sm text-muted-foreground sm:px-8">
+    <footer className="mx-auto flex w-full max-w-7xl flex-col gap-6 border-t border-border px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom))] text-sm text-muted-foreground sm:px-8">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
         <span className="font-serif text-base text-foreground">
           {siteConfig.name}

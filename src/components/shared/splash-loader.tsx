@@ -1,40 +1,36 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-const SPLASH_ID = "vg-splash";
 const MIN_MS = 550;
 const MAX_MS = 4500;
 const FADE_MS = 480;
 
+type Phase = "in" | "out" | "gone";
+
 /**
- * Dismisses the SSR `#vg-splash` once fonts are ready, React has hydrated,
- * and a short minimum dwell has elapsed — with a hard max so it never sticks.
+ * First-paint splash rendered inside the React tree.
  *
- * Walk demos keep their own Enter / LoadingShell after this; we only gate
- * first paint of marketing + app chrome.
+ * Must dismiss via React state (not DOM `remove()` / `removeChild`): imperative
+ * removal of a React-owned node races hydration/reconcile and triggers
+ * `insertBefore` NotFoundError.
+ *
+ * Overflow lock is CSS-only (`html:has(#vg-splash:not([data-state=out]))`) so
+ * we never mutate `<html className>` outside React / next-themes.
  */
-export function SplashDismisser() {
+export function SplashLoader({
+  brand,
+  label,
+}: {
+  brand: string;
+  label: string;
+}) {
+  const [phase, setPhase] = useState<Phase>("in");
+
   useEffect(() => {
-    const el = document.getElementById(SPLASH_ID);
-    if (!el) return;
-
     let cancelled = false;
-    let fadeTimer: ReturnType<typeof setTimeout> | undefined;
     let maxTimer: ReturnType<typeof setTimeout> | undefined;
-
     const started = performance.now();
-
-    const hide = () => {
-      if (cancelled || el.dataset.state === "out") return;
-      el.dataset.state = "out";
-      el.setAttribute("aria-busy", "false");
-      el.setAttribute("aria-hidden", "true");
-      document.documentElement.classList.remove("vg-splash-active");
-      fadeTimer = setTimeout(() => {
-        el.remove();
-      }, FADE_MS);
-    };
 
     const waitFonts = () =>
       typeof document.fonts?.ready?.then === "function"
@@ -48,22 +44,48 @@ export function SplashDismisser() {
         setTimeout(resolve, left);
       });
 
-    // Hydrated = this effect ran. Race fonts + min dwell against max timeout.
     void Promise.race([
       Promise.all([waitFonts(), waitMin()]),
       new Promise<void>((resolve) => {
         maxTimer = setTimeout(resolve, MAX_MS);
       }),
     ]).then(() => {
-      if (!cancelled) hide();
+      if (!cancelled) setPhase("out");
     });
 
     return () => {
       cancelled = true;
-      if (fadeTimer) clearTimeout(fadeTimer);
       if (maxTimer) clearTimeout(maxTimer);
     };
   }, []);
 
-  return null;
+  useEffect(() => {
+    if (phase !== "out") return;
+    const fadeTimer = setTimeout(() => setPhase("gone"), FADE_MS);
+    return () => clearTimeout(fadeTimer);
+  }, [phase]);
+
+  if (phase === "gone") return null;
+
+  const isOut = phase === "out";
+
+  return (
+    <div
+      id="vg-splash"
+      role="status"
+      aria-live="polite"
+      aria-busy={!isOut}
+      aria-hidden={isOut}
+      aria-label={label}
+      data-state={isOut ? "out" : undefined}
+      inert={isOut || undefined}
+    >
+      <div className="vg-splash-inner">
+        <p className="vg-splash-brand">{brand}</p>
+        <div className="vg-splash-rule" aria-hidden="true" />
+        <div className="vg-splash-spinner" aria-hidden="true" />
+        <p className="vg-splash-label">{label}</p>
+      </div>
+    </div>
+  );
 }

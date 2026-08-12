@@ -39,7 +39,7 @@ export default async function DemoIndexPage() {
         secondaryCta={secondaryCta}
       />
 
-      <section className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center gap-12 px-6 py-16 sm:px-8 sm:py-24">
+      <section className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center gap-12 px-4 py-16 sm:px-8 sm:py-24">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
@@ -60,14 +60,28 @@ export default async function DemoIndexPage() {
           </p>
         </div>
 
-        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 sm:gap-8">
+        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 sm:gap-8">
           {[
+            {
+              href: "/demo/ismail",
+              label: t("demo.ismailLabel"),
+              title: t("demo.ismailTitle"),
+              body: t("demo.ismailBody"),
+              delay: "",
+            },
+            {
+              href: "/demo/ismail/boats",
+              label: t("demo.boatsLabel"),
+              title: t("demo.boatsTitle"),
+              body: t("demo.boatsBody"),
+              delay: "stagger-fade-1",
+            },
             {
               href: "/demo/pro",
               label: t("demo.proLabel"),
               title: t("demo.proTitle"),
               body: t("demo.proBody"),
-              delay: "",
+              delay: "stagger-fade-1",
             },
             {
               href: "/demo/harbor",

@@ -74,6 +74,7 @@ function useAutosave(galleryId: string) {
   const lightingPreset = useEditorStore(
     (s) => s.gallery?.settings.lightingPreset,
   );
+  const eveningTour = useEditorStore((s) => s.gallery?.settings.eveningTour);
   const setSaveState = useEditorStore((s) => s.setSaveState);
   const markSaved = useEditorStore((s) => s.markSaved);
 
@@ -89,9 +90,14 @@ function useAutosave(galleryId: string) {
       const environment = state.gallery?.environmentOverrides ?? null;
       const architecture = state.gallery?.architectureOverrides ?? null;
       const preset = state.gallery?.settings.lightingPreset;
+      const tour = state.gallery?.settings.eveningTour;
       setSaveState("saving");
       void (async () => {
         try {
+          const settings: Record<string, unknown> = {};
+          if (preset) settings.lightingPreset = preset;
+          if (tour !== undefined) settings.eveningTour = tour ?? null;
+
           const [artworksRes, galleryRes] = await Promise.all([
             fetch(`/api/galleries/${galleryId}/artworks`, {
               method: "PUT",
@@ -112,7 +118,8 @@ function useAutosave(galleryId: string) {
                 lightingOverrides: lighting,
                 environmentOverrides: environment,
                 architectureOverrides: architecture,
-                settings: preset ? { lightingPreset: preset } : undefined,
+                settings:
+                  Object.keys(settings).length > 0 ? settings : undefined,
               }),
             }),
           ]);
@@ -136,6 +143,7 @@ function useAutosave(galleryId: string) {
     environmentOverrides,
     architectureOverrides,
     lightingPreset,
+    eveningTour,
     galleryId,
     setSaveState,
     markSaved,

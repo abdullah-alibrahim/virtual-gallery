@@ -26,7 +26,7 @@ export default async function AdminShellLayout({
 
   return (
     <AuthHydrator>
-      <div className="relative min-h-dvh bg-background">
+      <div className="relative min-h-dvh w-full overflow-x-hidden bg-background">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 -z-10"
@@ -36,17 +36,17 @@ export default async function AdminShellLayout({
         </div>
 
         <header className="border-b border-border">
-          <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-4 sm:px-8">
+          <div className="mx-auto flex w-full items-center justify-between gap-3 px-4 py-4 sm:gap-4 sm:px-6 lg:px-8">
             <Link
               href="/admin"
-              className="truncate font-serif text-xl tracking-tight"
+              className="min-w-0 truncate font-serif text-xl tracking-tight"
             >
               {siteConfig.name}
-              <span className="ml-2 text-sm font-sans text-muted-foreground">
+              <span className="ms-2 text-sm font-sans text-muted-foreground">
                 {t("admin.label")}
               </span>
             </Link>
-            <div className="flex items-center gap-3">
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
               <span className="hidden max-w-[14rem] truncate text-sm text-muted-foreground sm:inline">
                 {email}
               </span>
@@ -54,7 +54,7 @@ export default async function AdminShellLayout({
               <SignOutButton />
             </div>
           </div>
-          <div className="mx-auto w-full max-w-6xl px-6 sm:px-8">
+          <div className="mx-auto w-full overflow-x-auto px-4 sm:px-6 lg:px-8">
             <AdminNav />
           </div>
         </header>

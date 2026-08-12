@@ -1,0 +1,12 @@
+.firebase-emulator-data
+firebase-export-*
+.tools
+.vercel-xdg
+.cursor
+agent-transcripts
+*.tgz
+emulator-data
+.firebase
+coverage
+playwright-report
+test-results

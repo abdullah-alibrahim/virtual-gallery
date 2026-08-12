@@ -92,6 +92,14 @@ interface EditorState {
     patch: GalleryArchitectureOverrides | null,
   ) => void;
   applyLightingPreset: (presetId: string) => void;
+  updateGallerySettingsPatch: (
+    patch: Partial<
+      Pick<
+        Gallery["settings"],
+        "eveningTour" | "walkSpeed" | "showTitles" | "allowZoom"
+      >
+    >,
+  ) => void;
 
   applyPatch: (artworkId: string, patch: ArtworkPatch) => void;
   applyPlacement: (artworkId: string, placement: ArtworkPlacement) => void;
@@ -351,6 +359,23 @@ export const useEditorStore = create<EditorState>((set, get) => {
                 }
               : artwork,
           ),
+          saveState: "dirty",
+          revision: state.revision + 1,
+        };
+      }),
+
+    updateGallerySettingsPatch: (patch) =>
+      set((state) => {
+        if (!state.gallery) return state;
+        return {
+          gallery: {
+            ...state.gallery,
+            settings: {
+              ...state.gallery.settings,
+              ...patch,
+            },
+            hasUnpublishedChanges: true,
+          },
           saveState: "dirty",
           revision: state.revision + 1,
         };

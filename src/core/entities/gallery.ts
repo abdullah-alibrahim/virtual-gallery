@@ -118,6 +118,20 @@ export interface GallerySeo {
   readonly website?: string | null;
 }
 
+/**
+ * Timed “First Evening” invite — when enabled and within the window (or with
+ * a matching invite code), the public walk may suggest or apply night lighting.
+ */
+export interface EveningTourSettings {
+  readonly enabled: boolean;
+  /** ISO-8601 start of the evening window. */
+  readonly startAt: string;
+  /** ISO-8601 end of the evening window. */
+  readonly endAt: string;
+  /** Optional share code; visitors with `?evening=` / `?invite=` may enter early. */
+  readonly inviteCode?: string | null;
+}
+
 export interface GallerySettings {
   readonly walkSpeed: number;
   readonly showTitles: boolean;
@@ -126,6 +140,8 @@ export interface GallerySettings {
   readonly allowDownload: false;
   readonly ambientAudioAssetId: string | null;
   readonly lightingPreset: string;
+  /** Optional timed evening invite for visitors. */
+  readonly eveningTour?: EveningTourSettings | null;
 }
 
 export interface GalleryCounters {
@@ -201,13 +217,44 @@ export interface ArtworkLighting {
   readonly temperatureK: number;
 }
 
+/**
+ * Optional “inner world” behind a painting — text poetry, video, or a soft
+ * link into another room / demo. Compiles into the public manifest.
+ */
+export type ArtworkInnerWorld =
+  | {
+      readonly type: "text";
+      readonly title: string;
+      readonly body: string;
+    }
+  | {
+      readonly type: "video";
+      readonly url: string;
+      readonly title?: string;
+    }
+  | {
+      readonly type: "room";
+      readonly title?: string;
+      readonly body?: string;
+      /** Relative or absolute URL (e.g. `/demo/harbor`). */
+      readonly href?: string;
+      readonly spawnLabel?: string;
+    };
+
 export interface ArtworkMedia {
   readonly audioAssetId: string | null;
+  /**
+   * Direct voice-note / ambient URL when no uploaded audio asset is used.
+   * Prefer this for editor URL attachment; publish prefers asset when both set.
+   */
+  readonly audioUrl?: string | null;
   readonly videoUrl: string | null;
   readonly hotspot: {
     readonly enabled: boolean;
     readonly offset: readonly [number, number, number];
   };
+  /** Optional poetic / video / secondary-room experience for this work. */
+  readonly innerWorld?: ArtworkInnerWorld | null;
 }
 
 export interface ArtworkCommerce {

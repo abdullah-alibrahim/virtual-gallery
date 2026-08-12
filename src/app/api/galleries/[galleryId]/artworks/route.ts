@@ -51,11 +51,34 @@ const artworkSchema = z.object({
   }),
   media: z.object({
     audioAssetId: z.string().nullable(),
+    audioUrl: z.string().nullable().optional(),
     videoUrl: z.string().nullable(),
     hotspot: z.object({
       enabled: z.boolean(),
       offset: z.tuple([z.number(), z.number(), z.number()]),
     }),
+    innerWorld: z
+      .discriminatedUnion("type", [
+        z.object({
+          type: z.literal("text"),
+          title: z.string(),
+          body: z.string(),
+        }),
+        z.object({
+          type: z.literal("video"),
+          url: z.string(),
+          title: z.string().optional(),
+        }),
+        z.object({
+          type: z.literal("room"),
+          title: z.string().optional(),
+          body: z.string().optional(),
+          href: z.string().optional(),
+          spawnLabel: z.string().optional(),
+        }),
+      ])
+      .nullable()
+      .optional(),
   }),
   commerce: z.object({
     externalUrl: z.string().nullable(),

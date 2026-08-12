@@ -13,6 +13,10 @@ import type {
 } from "@/core/entities";
 import { ForbiddenError, NotFoundError, ValidationError } from "@/core/errors";
 import {
+  buildIsmailDomainAsset,
+  isIsmailAssetId,
+} from "@/core/samples/ismail-rifai";
+import {
   buildSampleDomainAsset,
   isSampleAssetId,
 } from "@/core/samples/sample-paintings";
@@ -69,6 +73,11 @@ export async function loadPublishContext(input: {
       if (isSampleAssetId(assetId)) {
         const sample = buildSampleDomainAsset(assetId, gallery.workspaceId);
         if (sample) assets.set(assetId, sample);
+        return;
+      }
+      if (isIsmailAssetId(assetId)) {
+        const packed = buildIsmailDomainAsset(assetId, gallery.workspaceId);
+        if (packed) assets.set(assetId, packed);
         return;
       }
       const snap = await db.collection("assets").doc(assetId).get();

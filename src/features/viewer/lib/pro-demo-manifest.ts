@@ -52,6 +52,26 @@ export function buildProDemoManifest(
       index % 5 === 0
         ? "A centrepiece of the hall. Pricing and placement available on request."
         : artwork.description,
+    ...(index === 0
+      ? {
+          innerWorld: {
+            type: "text" as const,
+            title: "Nave at Dusk",
+            body: "The hall lengthens after day.\nTracks cool to amber.\nA single footfall answers another —\nthen quiet, measured, returns.",
+          },
+        }
+      : {}),
+    ...(index === 5
+      ? {
+          innerWorld: {
+            type: "room" as const,
+            title: "Harbor chamber",
+            body: "Step from the wing into a coastal pavilion — another pace of light.",
+            href: "/demo/harbor",
+            spawnLabel: "Harbor Pavilion demo",
+          },
+        }
+      : {}),
   }));
 
   return {
@@ -82,6 +102,12 @@ export function buildProDemoManifest(
       walkSpeed: 1.85,
       showTitles: true,
       allowZoom: true,
+      eveningTour: {
+        enabled: true,
+        startAt: "2026-01-01T00:00:00.000Z",
+        endAt: "2027-12-31T23:59:59.000Z",
+        inviteCode: "dusk",
+      },
     },
     compiledAt: new Date("2026-08-01T12:00:00.000Z").toISOString(),
   };

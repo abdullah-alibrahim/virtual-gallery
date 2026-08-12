@@ -12,6 +12,8 @@ export interface PublicGalleryCard {
   readonly coverThumbUrl: string | null;
   readonly artworkCount: number;
   readonly publishedAt: Date | null;
+  /** Override the default `/g/{slug}` entry (static demos). */
+  readonly href?: string;
 }
 
 export async function listPublishedGalleriesForWorkspace(

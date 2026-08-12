@@ -6,6 +6,7 @@ import {
   makeAsset,
   makeGallery,
   makeProfile,
+  makeSettings,
   makeTemplate,
   makeWall,
 } from "@/core/__fixtures__/domain";
@@ -252,6 +253,64 @@ describe("compileSceneManifest", () => {
     expect(manifest.settings.ambientAudioUrl).toBe(
       "https://cdn.test/ambience.m4a",
     );
+  });
+
+  it("compiles innerWorld, voice note URL, and eveningTour", () => {
+    const artwork = makeArtwork("dawn", {
+      order: 0,
+      placement: {
+        wallId: "north",
+        anchorIndex: 0,
+        position: [0, 1.6, 0.05],
+        rotation: [0, 0, 0],
+        scale: 1,
+        autoPlaced: true,
+      },
+      media: {
+        audioAssetId: null,
+        audioUrl: "https://cdn.test/voice.m4a",
+        videoUrl: null,
+        hotspot: { enabled: true, offset: [0, 0, 0.1] },
+        innerWorld: {
+          type: "text",
+          title: "Quiet line",
+          body: "A measured breath.",
+        },
+      },
+    });
+
+    const manifest = compileSceneManifest({
+      gallery: makeGallery({
+        settings: makeSettings({
+          eveningTour: {
+            enabled: true,
+            startAt: "2026-01-01T00:00:00.000Z",
+            endAt: "2027-01-01T00:00:00.000Z",
+            inviteCode: "dusk",
+          },
+        }),
+      }),
+      artworks: [artwork],
+      template: makeTemplate(),
+      profile: makeProfile(),
+      environment: null,
+      assets: assetMap([makeAsset(artwork.assetId)]),
+      publishedVersion: 2,
+      compiledAt: new Date(0),
+    });
+
+    expect(manifest.artworks[0]?.innerWorld).toEqual({
+      type: "text",
+      title: "Quiet line",
+      body: "A measured breath.",
+    });
+    expect(manifest.artworks[0]?.media?.audioUrl).toBe(
+      "https://cdn.test/voice.m4a",
+    );
+    expect(manifest.settings.eveningTour).toMatchObject({
+      enabled: true,
+      inviteCode: "dusk",
+    });
   });
 
   it("bakes gallery materialOverrides into the published template", () => {

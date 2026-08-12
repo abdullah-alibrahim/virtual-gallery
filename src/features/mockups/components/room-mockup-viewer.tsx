@@ -146,7 +146,7 @@ export function RoomMockupViewer({
         </div>
       }
     >
-      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[1fr_18rem] lg:items-start">
+      <div className="flex w-full flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)] lg:items-start lg:gap-8">
         <div className="space-y-3">
           <RoomSwitcher activeId={presetId} onChange={setPresetId} />
           <div

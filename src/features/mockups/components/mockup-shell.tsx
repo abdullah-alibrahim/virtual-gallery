@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Client-presentation frame for room mockups — quiet chrome, serif title.
+ * Full main-column width so the stage can breathe on large screens.
  */
 export function MockupShell({
   title,
@@ -33,18 +34,18 @@ export function MockupShell({
   return (
     <div
       className={cn(
-        "min-h-dvh bg-[color:var(--luxury-stone)] text-foreground",
+        "min-h-dvh w-full bg-[color:var(--luxury-stone)] text-foreground",
         className,
       )}
     >
       <header className="sticky top-0 z-20 border-b border-border/80 bg-[color:var(--luxury-stone)]/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-4">
+        <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-3 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-4 lg:px-8">
           <div className="min-w-0">
             <Link
               href={backHref}
               className="inline-flex min-h-10 items-center gap-1.5 text-xs tracking-wide text-muted-foreground transition-colors hover:text-foreground"
             >
-              <ArrowLeft className="size-3.5" aria-hidden />
+              <ArrowLeft className="size-3.5 shrink-0" aria-hidden />
               {resolvedBackLabel}
             </Link>
             <p className="mt-1 text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
@@ -65,8 +66,8 @@ export function MockupShell({
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-8">
-        <div className="mockup-fade-in">{children}</div>
+      <main className="mx-auto w-full max-w-[1600px] px-4 py-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-8 lg:px-8">
+        <div className="mockup-fade-in w-full">{children}</div>
       </main>
     </div>
   );

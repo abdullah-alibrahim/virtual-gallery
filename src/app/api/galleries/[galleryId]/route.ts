@@ -105,6 +105,15 @@ const settingsPatchSchema = z
     walkSpeed: z.number().min(0.2).max(4).optional(),
     showTitles: z.boolean().optional(),
     allowZoom: z.boolean().optional(),
+    eveningTour: z
+      .object({
+        enabled: z.boolean(),
+        startAt: z.string().min(1),
+        endAt: z.string().min(1),
+        inviteCode: z.string().max(64).nullable().optional(),
+      })
+      .nullable()
+      .optional(),
   })
   .strict();
 

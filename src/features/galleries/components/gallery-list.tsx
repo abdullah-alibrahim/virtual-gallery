@@ -51,7 +51,7 @@ export function GalleryList({
   }
 
   return (
-    <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
+    <ul className="grid w-full gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 lg:gap-7 xl:grid-cols-4">
       {galleries.map((gallery, index) => {
         const status = galleryStatusPresentation(gallery.status);
         const delayClass =

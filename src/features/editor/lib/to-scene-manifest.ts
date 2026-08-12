@@ -5,6 +5,7 @@ import type {
   SceneManifest,
   SceneTemplate,
 } from "@/core/entities";
+import { resolveIsmailTextureUrl } from "@/core/samples/ismail-rifai";
 import { resolveSampleTextureUrl } from "@/core/samples/sample-paintings";
 import { applyGalleryOverrides } from "@/core/services/apply-gallery-overrides";
 import type { AssetListItem } from "@/infrastructure/firebase/assets-client";
@@ -27,8 +28,20 @@ export function editorDraftToManifest(input: {
     .sort((a, b) => a.order - b.order)
     .map((artwork) => {
       const asset = byId.get(artwork.assetId);
-      const sampleUrl = resolveSampleTextureUrl(artwork.assetId);
+      const sampleUrl =
+        resolveSampleTextureUrl(artwork.assetId) ??
+        resolveIsmailTextureUrl(artwork.assetId);
       const thumb = sampleUrl ?? asset?.thumbUrl ?? input.placeholderUrl;
+      const audioUrl = artwork.media.audioUrl?.trim() || undefined;
+      const videoUrl = artwork.media.videoUrl?.trim() || undefined;
+      const media =
+        audioUrl || videoUrl
+          ? {
+              ...(audioUrl ? { audioUrl } : {}),
+              ...(videoUrl ? { videoUrl } : {}),
+            }
+          : undefined;
+      const innerWorld = artwork.media.innerWorld ?? undefined;
       return {
         id: artwork.id,
         title: artwork.title,
@@ -58,6 +71,8 @@ export function editorDraftToManifest(input: {
               : artwork.dimensions.width / artwork.dimensions.height,
           blurhash: asset?.blurhash ?? "",
         },
+        ...(media ? { media } : {}),
+        ...(innerWorld ? { innerWorld } : {}),
       };
     });
 
@@ -80,6 +95,9 @@ export function editorDraftToManifest(input: {
       walkSpeed: input.gallery.settings.walkSpeed,
       showTitles: input.gallery.settings.showTitles,
       allowZoom: input.gallery.settings.allowZoom,
+      ...(input.gallery.settings.eveningTour?.enabled
+        ? { eveningTour: input.gallery.settings.eveningTour }
+        : {}),
     },
     compiledAt: new Date().toISOString(),
   };

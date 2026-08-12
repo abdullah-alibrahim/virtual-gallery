@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Share2, X, ZoomIn } from "lucide-react";
+import { ChevronLeft, ChevronRight, DoorOpen, Share2, X, ZoomIn } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import type { SceneArtwork, SceneManifest } from "@/core/entities";
@@ -13,6 +13,8 @@ import { useT } from "@/i18n";
 import type { MessageKey } from "@/i18n/translate";
 import { resolveArtistSocialLinks } from "@/lib/social-urls";
 import { cn } from "@/lib/utils";
+
+import { VoiceNotePlayer } from "./voice-note-player";
 
 const AVAILABILITY_KEYS: Record<string, MessageKey> = {
   available: "editor.available",
@@ -31,6 +33,7 @@ export function ArtworkDetailSheet({
   galleryWebsite,
   mockupsHref,
   spaceHref,
+  soundMuted = false,
   tourIndex = null,
   tourTotal = null,
   onTourPrev,
@@ -38,6 +41,7 @@ export function ArtworkDetailSheet({
   onClose,
   onZoom,
   onShare,
+  onEnterInnerWorld,
 }: {
   artwork: SceneArtwork;
   artistName: string;
@@ -47,6 +51,7 @@ export function ArtworkDetailSheet({
   galleryWebsite?: string | null;
   mockupsHref?: string;
   spaceHref?: string;
+  soundMuted?: boolean;
   tourIndex?: number | null;
   tourTotal?: number | null;
   onTourPrev?: () => void;
@@ -54,6 +59,7 @@ export function ArtworkDetailSheet({
   onClose: () => void;
   onZoom: () => void;
   onShare?: () => void;
+  onEnterInnerWorld?: () => void;
 }) {
   const t = useT();
   const reduceMotion = usePrefersReducedMotion();
@@ -167,33 +173,70 @@ export function ArtworkDetailSheet({
         </span>
       </button>
 
+      {(artwork.media?.audioUrl || onEnterInnerWorld) && (
+        <div className="mx-4 mb-3 flex flex-wrap gap-2">
+          {artwork.media?.audioUrl ? (
+            <VoiceNotePlayer
+              src={artwork.media.audioUrl}
+              muted={soundMuted}
+            />
+          ) : null}
+          {onEnterInnerWorld ? (
+            <button
+              type="button"
+              onClick={onEnterInnerWorld}
+              className="inline-flex items-center gap-2 border border-[color:var(--viewer-brass)]/35 bg-[color:var(--viewer-brass)]/[0.08] px-3 py-2 text-[11px] tracking-[0.14em] text-[color:var(--viewer-brass)] uppercase transition-colors hover:bg-[color:var(--viewer-brass)]/[0.14]"
+            >
+              <DoorOpen className="size-3.5" />
+              {t("walk.enterTheWork")}
+            </button>
+          ) : null}
+        </div>
+      )}
+
       <dl className="space-y-0 px-4 pb-5 text-sm">
-        {artwork.medium ? (
-          <Row label={t("walk.medium")} value={artwork.medium} />
-        ) : null}
+        <Row
+          label={t("walk.medium")}
+          value={artwork.medium?.trim() || t("walk.mediumFallback")}
+        />
         <Row
           label={t("walk.size")}
           value={`${artwork.dimensions.width} × ${artwork.dimensions.height} ${artwork.dimensions.unit}`}
         />
-        {artwork.price ? (
-          <Row label={t("editor.price")} value={formatMoney(artwork.price)} />
-        ) : priceOnRequest ? (
-          <Row label={t("editor.price")} value={t("walk.onRequest")} />
-        ) : null}
+        {artwork.year ? (
+          <Row label={t("walk.year")} value={String(artwork.year)} />
+        ) : (
+          <Row label={t("walk.year")} value={t("walk.yearUnknown")} />
+        )}
+        <Row
+          label={t("walk.series")}
+          value={artwork.category?.trim() || t("walk.seriesFallback")}
+        />
         <Row
           label={t("walk.availability")}
           value={humanAvailability(artwork.availability, t)}
         />
-        {artwork.description ? (
-          <div className="border-t border-white/[0.08] pt-4 mt-3">
-            <dt className="text-[10px] tracking-[0.16em] text-white/40 uppercase">
-              {t("walk.aboutWork")}
-            </dt>
-            <dd className="mt-2 whitespace-pre-wrap text-[13px] leading-relaxed text-white/80">
-              {artwork.description}
-            </dd>
-          </div>
-        ) : null}
+        {artwork.price ? (
+          <Row label={t("editor.price")} value={formatMoney(artwork.price)} />
+        ) : (
+          <Row label={t("editor.price")} value={t("walk.onRequest")} />
+        )}
+        <Row label={t("walk.signed")} value={t("walk.signedFallback")} />
+        <Row label={t("walk.provenance")} value={t("walk.provenanceFallback")} />
+        <Row
+          label={t("walk.inventory")}
+          value={inventoryNo(artwork.id)}
+        />
+        <Row label={t("walk.condition")} value={t("walk.conditionFallback")} />
+        <Row label={t("walk.exhibition")} value={t("walk.exhibitionFallback")} />
+        <div className="border-t border-white/[0.08] pt-4 mt-3">
+          <dt className="text-[10px] tracking-[0.16em] text-white/40 uppercase">
+            {t("walk.aboutWork")}
+          </dt>
+          <dd className="mt-2 whitespace-pre-wrap text-[13px] leading-relaxed text-white/80">
+            {artwork.description?.trim() || t("walk.aboutFallback")}
+          </dd>
+        </div>
 
         {showEnquireBlock ? (
           <div className="mt-4 border border-[color:var(--viewer-brass)]/25 bg-[color:var(--viewer-brass)]/[0.06] px-3 py-3.5">
@@ -289,6 +332,11 @@ function humanAvailability(
   const key = AVAILABILITY_KEYS[value];
   if (key) return t(key);
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function inventoryNo(artworkId: string): string {
+  const slug = artworkId.replace(/[^a-z0-9]/gi, "").slice(-6).toUpperCase();
+  return `VG-${slug || "000000"}`;
 }
 
 export function findArtwork(

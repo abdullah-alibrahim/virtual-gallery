@@ -20,7 +20,7 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        "flex flex-col gap-5 border-b border-border pb-8 sm:flex-row sm:items-end sm:justify-between",
+        "flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between sm:gap-5 sm:pb-8",
         "page-enter",
         className,
       )}
@@ -34,13 +34,13 @@ export function PageHeader({
           {title}
         </h1>
         {description ? (
-          <p className="max-w-2xl text-base text-muted-foreground text-pretty">
+          <p className="max-w-2xl text-sm text-muted-foreground text-pretty sm:text-base">
             {description}
           </p>
         ) : null}
       </div>
       {actions ? (
-        <div className="flex shrink-0 flex-wrap items-center gap-2 stagger-fade stagger-fade-1">
+        <div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:w-auto stagger-fade stagger-fade-1">
           {actions}
         </div>
       ) : null}

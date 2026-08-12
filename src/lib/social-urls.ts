@@ -28,6 +28,7 @@ function asHttpUrl(value: string | undefined): string | undefined {
 
 export type SocialLinkKind =
   | "website"
+  | "facebook"
   | "instagram"
   | "twitter"
   | "linkedin"
@@ -51,12 +52,20 @@ export function resolveArtistSocialLinks(
     links.push({ kind, href });
   };
 
+  const pushSite = (href: string | undefined) => {
+    if (href && /facebook\.com/i.test(href)) push("facebook", href);
+    else push("website", href);
+  };
+
   if (!socials) {
-    push("website", asHttpUrl(options?.galleryWebsite ?? undefined));
+    pushSite(asHttpUrl(options?.galleryWebsite ?? undefined));
     return links;
   }
 
-  push("website", asHttpUrl(socials.website) ?? asHttpUrl(options?.galleryWebsite ?? undefined));
+  push("facebook", asHttpUrl(socials.facebook));
+  pushSite(
+    asHttpUrl(socials.website) ?? asHttpUrl(options?.galleryWebsite ?? undefined),
+  );
   push("instagram", asHandleUrl(socials.instagram, "https://instagram.com/"));
   push("twitter", asHandleUrl(socials.twitter, "https://x.com/"));
   push("linkedin", asHttpUrl(socials.linkedin));

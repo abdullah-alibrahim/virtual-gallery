@@ -3,6 +3,7 @@
     "default": "virtual-gallery-dev",
     "dev": "virtual-gallery-dev",
     "staging": "virtual-gallery-staging",
-    "prod": "virtual-gallery-prod"
+    "prod": "gallery-86ef8",
+    "gallery": "gallery-86ef8"
   }
 }

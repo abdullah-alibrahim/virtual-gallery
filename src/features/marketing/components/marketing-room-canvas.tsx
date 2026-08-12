@@ -3,7 +3,15 @@
 import { PerspectiveCamera } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { damp3, dampLookAt } from "maath/easing";
-import { lazy, Suspense, useLayoutEffect, useMemo, useRef } from "react";
+import {
+  Component,
+  lazy,
+  Suspense,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from "react";
 import {
   ACESFilmicToneMapping,
   Color,
@@ -28,9 +36,18 @@ import {
 import { buildMarketingPreviewArtworks } from "../lib/marketing-preview-artworks";
 
 const GalleryEffects = lazy(() =>
-  import("@/three/scene/gallery-effects").then((m) => ({
-    default: m.GalleryEffects,
-  })),
+  import("@/three/scene/gallery-effects")
+    .then((m) => ({
+      default: m.GalleryEffects,
+    }))
+    .catch((err) => {
+      console.warn("[gallery] effects chunk failed to load", err);
+      return {
+        default: function GalleryEffectsUnavailable() {
+          return null;
+        },
+      };
+    }),
 );
 
 export interface MarketingRoomCanvasProps {
@@ -141,15 +158,38 @@ export function MarketingRoomCanvas({
         mobile={mobile}
         paused={paused}
       />
-      <Suspense fallback={null}>
-        <GalleryEffects
-          quality={quality}
-          toneMapping="aces"
-          preset="marketing"
-        />
-      </Suspense>
+      <EffectsErrorBoundary>
+        <Suspense fallback={null}>
+          <GalleryEffects
+            quality={quality}
+            toneMapping="aces"
+            preset="marketing"
+          />
+        </Suspense>
+      </EffectsErrorBoundary>
     </Canvas>
   );
+}
+
+/** R3F-safe silent fallback — never mount DOM UI inside Canvas. */
+class EffectsErrorBoundary extends Component<
+  { children: ReactNode },
+  { failed: boolean }
+> {
+  override state = { failed: false };
+
+  static getDerivedStateFromError(): { failed: boolean } {
+    return { failed: true };
+  }
+
+  override componentDidCatch(error: Error) {
+    console.warn("[gallery] effects disabled after runtime error", error);
+  }
+
+  override render() {
+    if (this.state.failed) return null;
+    return this.props.children;
+  }
 }
 
 function ShowWash({

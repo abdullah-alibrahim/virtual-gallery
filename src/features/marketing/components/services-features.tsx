@@ -53,7 +53,7 @@ export function ServicesFeatures() {
       >
         <div className="atmosphere-drift absolute -inset-[8%] bg-[radial-gradient(ellipse_50%_40%_at_88%_10%,oklch(0.92_0.02_85_/0.35),transparent),radial-gradient(ellipse_35%_30%_at_8%_80%,oklch(0.9_0.015_210_/0.12),transparent)]" />
       </div>
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-12 px-6 py-20 sm:px-8 sm:py-24">
+      <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-12 px-4 py-20 sm:px-8 sm:py-24">
         <div className="max-w-2xl page-enter space-y-4">
           <div
             aria-hidden
@@ -70,15 +70,14 @@ export function ServicesFeatures() {
           </p>
         </div>
 
-        <ul className="grid gap-x-10 gap-y-0 sm:grid-cols-2">
+        <ul className="grid gap-x-10 gap-y-0 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map(({ key, Icon }, index) => (
             <li
               key={key}
               className={cn(
                 "flex gap-4 border-t border-border py-7 stagger-fade",
-                index % 4 === 1 && "stagger-fade-1",
-                index % 4 === 2 && "stagger-fade-2",
-                index % 4 === 3 && "stagger-fade-3",
+                index % 3 === 1 && "stagger-fade-1",
+                index % 3 === 2 && "stagger-fade-2",
               )}
             >
               <span

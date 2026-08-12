@@ -20,6 +20,9 @@ export const ADMIN_PASSWORD = "Admin1234!";
 export const ADMIN_NAME = "Platform Admin";
 export const ADMIN_SLUG = "platform-admin";
 
+export const ISMAIL_EMAIL = "ismail@virtualgallery.dev";
+export const ISMAIL_PASSWORD = "Ismail1234!";
+
 async function upsertAuthUser(
   auth: Auth,
   input: {
@@ -390,6 +393,308 @@ export async function seedProDemoArtist(
   }
   if (galleryId) {
     console.log(`Primary pro demo gallery: ${galleryId}`);
+  }
+
+  return {
+    uid,
+    workspaceId,
+    galleryId,
+    galleryLimit: pro.galleries,
+  };
+}
+
+export async function seedIsmailRifaiArtist(
+  db: Firestore,
+  auth: Auth,
+): Promise<{
+  uid: string;
+  workspaceId: string;
+  galleryId: string | null;
+  galleryLimit: number;
+}> {
+  const { bootstrapUserAccount } = await import(
+    "../../src/infrastructure/firebase/bootstrap-user"
+  );
+  const { createGalleryDocument } = await import(
+    "../../src/infrastructure/galleries/create-gallery"
+  );
+  const { saveGalleryArtworks } = await import(
+    "../../src/infrastructure/galleries/save-artworks"
+  );
+  const { setPlatformAdminClaim } = await import(
+    "../../src/infrastructure/firebase/platform-admin"
+  );
+  const { PLAN_LIMITS } = await import("../../src/core/services/plan-limits");
+  const { getTemplateById } = await import("../../src/core/templates");
+  const { hangAssetAsArtwork } = await import(
+    "../../src/features/editor/lib/hang-artwork"
+  );
+  const {
+    buildIsmailAssetListItems,
+    buildIsmailBoatAssetListItems,
+    buildIsmailTreeAssetListItems,
+  } = await import("../../src/features/editor/lib/sample-assets");
+  const {
+    ISMAIL_BOATS_TITLE,
+    ISMAIL_BOAT_WORKS,
+    ISMAIL_DISPLAY_NAME,
+    ISMAIL_FACEBOOK_URL,
+    ISMAIL_GALLERY_TITLE,
+    ISMAIL_HALL_WORKS,
+    ISMAIL_SLUG,
+    getIsmailRifaiStaticProfile,
+    ismailTextureUrl,
+  } = await import("../../src/core/samples/ismail-rifai");
+
+  const uid = await upsertAuthUser(auth, {
+    email: ISMAIL_EMAIL,
+    password: ISMAIL_PASSWORD,
+    displayName: ISMAIL_DISPLAY_NAME,
+  });
+
+  const bootstrap = await bootstrapUserAccount(db, auth, {
+    uid,
+    email: ISMAIL_EMAIL,
+    displayName: ISMAIL_DISPLAY_NAME,
+    photoURL: ismailTextureUrl("avatar.jpg"),
+  });
+
+  await setPlatformAdminClaim(auth, uid, false);
+
+  const workspaceId = bootstrap.workspaceId;
+  const now = FieldValue.serverTimestamp();
+  const pro = PLAN_LIMITS.pro;
+  const staticProfile = getIsmailRifaiStaticProfile();
+
+  await ensureArtistSlug(
+    db,
+    workspaceId,
+    ISMAIL_SLUG,
+    ISMAIL_DISPLAY_NAME,
+    bootstrap.slug,
+  );
+
+  await db
+    .collection("artistProfiles")
+    .doc(workspaceId)
+    .set(
+      {
+        displayName: ISMAIL_DISPLAY_NAME,
+        bio: staticProfile.bio,
+        statement: staticProfile.statement,
+        avatarUrl: staticProfile.avatarUrl,
+        coverUrl: staticProfile.coverUrl,
+        location: staticProfile.location,
+        socials: { facebook: ISMAIL_FACEBOOK_URL },
+        contact: { allowInquiries: true, showEmail: false },
+        updatedAt: now,
+      },
+      { merge: true },
+    );
+
+  await db
+    .collection("users")
+    .doc(uid)
+    .set(
+      {
+        displayName: ISMAIL_DISPLAY_NAME,
+        photoURL: ismailTextureUrl("avatar.jpg"),
+        platformAdmin: false,
+        disabled: false,
+        onboarding: {
+          completed: true,
+          step: "done",
+          completedAt: now,
+        },
+        updatedAt: now,
+      },
+      { merge: true },
+    );
+
+  await db
+    .collection("workspaces")
+    .doc(workspaceId)
+    .set(
+      {
+        name: ISMAIL_DISPLAY_NAME,
+        plan: "pro",
+        limits: {
+          galleries: pro.galleries,
+          artworksPerGallery: pro.artworksPerGallery,
+          storageBytes: pro.storageBytes,
+          customDomain: pro.customDomain,
+          seats: pro.seats,
+        },
+        updatedAt: now,
+      },
+      { merge: true },
+    );
+
+  const existing = await db
+    .collection("galleries")
+    .where("workspaceId", "==", workspaceId)
+    .where("deletedAt", "==", null)
+    .get();
+
+  const byTitle = new Map(
+    existing.docs.map((doc) => [String(doc.data().title ?? ""), doc.id]),
+  );
+
+  let galleryId = byTitle.get(ISMAIL_GALLERY_TITLE) ?? null;
+
+  if (!galleryId) {
+    if (existing.size >= pro.galleries) {
+      galleryId = existing.docs[0]?.id ?? null;
+    } else {
+      const created = await createGalleryDocument({
+        uid,
+        workspaceId,
+        title: ISMAIL_GALLERY_TITLE,
+        templateId: "mega-wing",
+      });
+      galleryId = created.galleryId;
+      console.log(
+        `Created Ismail gallery ${created.galleryId} (${ISMAIL_GALLERY_TITLE} / mega-wing)`,
+      );
+    }
+  }
+
+  if (galleryId) {
+    const template = getTemplateById("mega-wing");
+    if (template) {
+      const assets = [
+        ...buildIsmailAssetListItems(workspaceId),
+        ...buildIsmailTreeAssetListItems(workspaceId),
+      ];
+      let hung: import("../../src/core/entities").Artwork[] = [];
+      for (const asset of assets) {
+        const work = ISMAIL_HALL_WORKS.find(
+          (item) => item.file === asset.fileName,
+        );
+        const artwork = hangAssetAsArtwork({
+          asset,
+          galleryId,
+          workspaceId,
+          template,
+          existing: hung,
+        });
+        if (!artwork) break;
+        hung = [
+          ...hung,
+          {
+            ...artwork,
+            title: work?.title ?? artwork.title,
+            description: work?.description ?? "",
+            year: work?.year ?? artwork.year,
+            medium: work?.medium ?? artwork.medium,
+          },
+        ];
+      }
+
+      if (hung.length > 0) {
+        await saveGalleryArtworks({ uid, galleryId, artworks: hung });
+      }
+
+      await db.collection("galleries").doc(galleryId).set(
+        {
+          templateId: "mega-wing",
+          description:
+            "The Hall — Roads, Figures, and Bait Al Shamsi Tree in Mega Wing. Marakeb has its own salon.",
+          cover: {
+            assetId: assets[0]?.id ?? "ismail:01",
+            thumbUrl: ismailTextureUrl("cover.jpg"),
+            blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
+          },
+          seo: {
+            title: `${ISMAIL_DISPLAY_NAME} — ${ISMAIL_GALLERY_TITLE}`,
+            description:
+              "Walk The Hall — Roads, Figures, and Bait Al Shamsi Tree in the Pro Mega Wing.",
+            ogPath: null,
+            website: ISMAIL_FACEBOOK_URL,
+          },
+          updatedAt: now,
+        },
+        { merge: true },
+      );
+    }
+  }
+
+  let boatsId = byTitle.get(ISMAIL_BOATS_TITLE) ?? null;
+  if (!boatsId) {
+    const live = await db
+      .collection("galleries")
+      .where("workspaceId", "==", workspaceId)
+      .where("deletedAt", "==", null)
+      .get();
+    if (live.size < pro.galleries) {
+      const created = await createGalleryDocument({
+        uid,
+        workspaceId,
+        title: ISMAIL_BOATS_TITLE,
+        templateId: "noir-salon",
+      });
+      boatsId = created.galleryId;
+      console.log(
+        `Created Ismail gallery ${created.galleryId} (${ISMAIL_BOATS_TITLE} / noir-salon)`,
+      );
+    }
+  }
+
+  if (boatsId) {
+    const template = getTemplateById("noir-salon");
+    if (template) {
+      const assets = buildIsmailBoatAssetListItems(workspaceId);
+      let hung: import("../../src/core/entities").Artwork[] = [];
+      for (const asset of assets) {
+        const work = ISMAIL_BOAT_WORKS.find(
+          (item) => item.file === asset.fileName,
+        );
+        const artwork = hangAssetAsArtwork({
+          asset,
+          galleryId: boatsId,
+          workspaceId,
+          template,
+          existing: hung,
+        });
+        if (!artwork) break;
+        hung = [
+          ...hung,
+          {
+            ...artwork,
+            title: work?.title ?? artwork.title,
+            description: work?.description ?? "",
+            year: work?.year ?? artwork.year,
+            medium: work?.medium ?? artwork.medium,
+            category: work?.category ?? artwork.category,
+          },
+        ];
+      }
+
+      if (hung.length > 0) {
+        await saveGalleryArtworks({ uid, galleryId: boatsId, artworks: hung });
+      }
+
+      await db.collection("galleries").doc(boatsId).set(
+        {
+          templateId: "noir-salon",
+          description:
+            "Marakeb — boats as memory and hull, hung in Noir Salon.",
+          cover: {
+            assetId: assets[0]?.id ?? "ismail:boat-01",
+            thumbUrl: ismailTextureUrl("boats/01.jpg"),
+            blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
+          },
+          seo: {
+            title: `${ISMAIL_DISPLAY_NAME} — ${ISMAIL_BOATS_TITLE}`,
+            description: "Walk the Marakeb boat series in the Pro Noir Salon.",
+            ogPath: null,
+            website: ISMAIL_FACEBOOK_URL,
+          },
+          updatedAt: now,
+        },
+        { merge: true },
+      );
+    }
   }
 
   return {

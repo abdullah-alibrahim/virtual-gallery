@@ -28,11 +28,13 @@ export function SocialLinks({
   tone = "muted",
   className,
   label,
+  layout = "icons",
 }: {
   links: readonly ResolvedSocialLink[];
   tone?: Tone;
   className?: string;
   label?: string;
+  layout?: "icons" | "pills";
 }) {
   if (links.length === 0) return null;
 
@@ -48,13 +50,22 @@ export function SocialLinks({
           target="_blank"
           rel="noreferrer noopener"
           className={cn(
-            "inline-flex size-9 items-center justify-center rounded-sm transition-colors",
+            "inline-flex items-center justify-center rounded-sm transition-colors",
             "focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2",
+            layout === "pills"
+              ? cn(
+                  "h-8 gap-2 border px-3 text-[11px] tracking-[0.16em] uppercase",
+                  tone === "onDark"
+                    ? "border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10"
+                    : "border-border bg-card hover:bg-accent",
+                )
+              : "size-9",
             toneClass[tone],
           )}
           aria-label={kindLabel(link.kind)}
         >
           <SocialIcon kind={link.kind} className="size-[1.125rem]" />
+          {layout === "pills" ? <span>{kindLabel(link.kind)}</span> : null}
         </a>
       ))}
     </nav>
@@ -123,6 +134,8 @@ function kindLabel(kind: SocialLinkKind): string {
   switch (kind) {
     case "website":
       return "Website";
+    case "facebook":
+      return "Facebook";
     case "instagram":
       return "Instagram";
     case "twitter":
@@ -160,6 +173,12 @@ function SocialIcon({
           <path d="M3 12h18" />
           <path d="M12 3a14 14 0 0 1 0 18" />
           <path d="M12 3a14 14 0 0 0 0 18" />
+        </svg>
+      );
+    case "facebook":
+      return (
+        <svg {...props} fill="currentColor" stroke="none">
+          <path d="M14 8h2.5V4.8h-2.6C11.4 4.8 10 6.4 10 9v2H7.5v3.2H10V22h3.3v-7.8h2.6l.5-3.2h-3.1V9.4c0-.8.3-1.4 1.2-1.4Z" />
         </svg>
       );
     case "instagram":

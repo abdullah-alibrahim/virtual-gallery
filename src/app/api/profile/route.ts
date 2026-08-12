@@ -39,8 +39,11 @@ const bodySchema = z.object({
   bio: z.string().max(500),
   statement: z.string().max(4000),
   location: z.string().max(120).nullable(),
+  avatarUrl: z.string().trim().max(500).nullable().optional(),
+  coverUrl: z.string().trim().max(500).nullable().optional(),
   socials: z.object({
     website: optionalUrl,
+    facebook: optionalUrl,
     instagram: optionalHandle,
     twitter: optionalHandle,
     linkedin: optionalUrl,
@@ -73,6 +76,7 @@ export async function PUT(request: Request) {
   const socials = parsed.data.socials;
   const cleaned = {
     ...(socials.website?.trim() ? { website: socials.website.trim() } : {}),
+    ...(socials.facebook?.trim() ? { facebook: socials.facebook.trim() } : {}),
     ...(socials.instagram?.trim()
       ? { instagram: socials.instagram.trim().replace(/^@/, "") }
       : {}),
@@ -91,6 +95,8 @@ export async function PUT(request: Request) {
       bio: parsed.data.bio,
       statement: parsed.data.statement,
       location: parsed.data.location,
+      avatarUrl: parsed.data.avatarUrl,
+      coverUrl: parsed.data.coverUrl,
       socials: cleaned,
       contact: parsed.data.contact,
     });

@@ -168,7 +168,20 @@ export function buildDemoManifest(
       },
     },
     template: modernWhiteTemplate,
-    artworks,
+    artworks: artworks.map((a) =>
+      a.id === "starry-night"
+        ? {
+            ...a,
+            description:
+              "A night that holds its breath — enter the work for a quiet reading.",
+            innerWorld: {
+              type: "text" as const,
+              title: "Under the cypress",
+              body: "The sky turns like a slow wheel.\nBlue folds into gold,\nand the village sleeps in a pocket of light.\n\nStand still. The painting walks toward you.",
+            },
+          }
+        : a,
+    ),
     settings: {
       walkSpeed: 1.6,
       showTitles: true,
