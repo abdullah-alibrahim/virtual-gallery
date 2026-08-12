@@ -157,7 +157,7 @@ export function SharePanel({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={qrSrc}
-                alt="QR code linking to this gallery"
+                alt={t("walk.qrAlt")}
                 width={160}
                 height={160}
                 className="size-40"

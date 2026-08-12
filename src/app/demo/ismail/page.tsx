@@ -4,6 +4,7 @@ import { siteConfig } from "@/config/site";
 import { ISMAIL_DISPLAY_NAME } from "@/core/samples/ismail-rifai";
 import { GalleryViewer } from "@/features/viewer/components/gallery-viewer";
 import { buildIsmailRifaiManifest } from "@/features/viewer/lib/ismail-rifai-manifest";
+import { getRequestLocale } from "@/i18n/server";
 import { buildGalleryJsonLd } from "@/lib/seo/gallery-json-ld";
 
 export const metadata: Metadata = {
@@ -21,7 +22,8 @@ export default async function DemoIsmailPage({
   searchParams: Promise<{ view?: string }>;
 }) {
   const { view } = await searchParams;
-  const manifest = buildIsmailRifaiManifest(siteConfig.url);
+  const locale = await getRequestLocale();
+  const manifest = buildIsmailRifaiManifest(siteConfig.url, locale);
   const jsonLd = buildGalleryJsonLd(manifest);
 
   return (

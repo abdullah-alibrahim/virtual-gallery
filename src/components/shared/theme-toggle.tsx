@@ -5,13 +5,8 @@ import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
 import { useMounted } from "@/hooks/use-mounted";
+import { useT } from "@/i18n/locale-provider";
 import { cn } from "@/lib/utils";
-
-const OPTIONS = [
-  { value: "light", label: "Light", Icon: Sun },
-  { value: "system", label: "System", Icon: Monitor },
-  { value: "dark", label: "Dark", Icon: Moon },
-] as const;
 
 /**
  * Three-state theme switch. Renders a placeholder until mounted because the
@@ -20,6 +15,13 @@ const OPTIONS = [
 export function ThemeToggle({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme();
   const mounted = useMounted();
+  const t = useT();
+
+  const options = [
+    { value: "light", label: t("common.themeLight"), Icon: Sun },
+    { value: "system", label: t("common.themeSystem"), Icon: Monitor },
+    { value: "dark", label: t("common.themeDark"), Icon: Moon },
+  ] as const;
 
   if (!mounted) {
     return (
@@ -33,13 +35,13 @@ export function ThemeToggle({ className }: { className?: string }) {
   return (
     <div
       role="radiogroup"
-      aria-label="Colour theme"
+      aria-label={t("common.theme")}
       className={cn(
         "inline-flex items-center gap-0.5 rounded-md border border-border p-0.5",
         className,
       )}
     >
-      {OPTIONS.map(({ value, label, Icon }) => (
+      {options.map(({ value, label, Icon }) => (
         <Button
           key={value}
           role="radio"

@@ -16,6 +16,7 @@ import {
   getIsmailRifaiStaticProfile,
   ismailSectionOf,
   ismailTextureUrl,
+  ismailMediumLocalized,
 } from "@/core/samples/ismail-rifai";
 import type { ArtistProfile, UserAccount } from "@/core/entities";
 import { NotFoundError } from "@/core/errors";
@@ -429,7 +430,8 @@ export default async function ArtistProfilePage({
                               {arabic ? work.titleAr : work.title}
                             </p>
                             <p className="text-[11px] text-white/40">
-                              {work.year} · {work.medium}
+                              {work.year} ·{" "}
+                              {ismailMediumLocalized(work.medium, arabic)}
                             </p>
                           </Link>
                         </li>

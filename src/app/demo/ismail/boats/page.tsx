@@ -7,6 +7,7 @@ import {
 } from "@/core/samples/ismail-rifai";
 import { GalleryViewer } from "@/features/viewer/components/gallery-viewer";
 import { buildIsmailBoatsManifest } from "@/features/viewer/lib/ismail-rifai-manifest";
+import { getRequestLocale } from "@/i18n/server";
 import { buildGalleryJsonLd } from "@/lib/seo/gallery-json-ld";
 
 export const metadata: Metadata = {
@@ -24,7 +25,8 @@ export default async function DemoIsmailBoatsPage({
   searchParams: Promise<{ view?: string }>;
 }) {
   const { view } = await searchParams;
-  const manifest = buildIsmailBoatsManifest(siteConfig.url);
+  const locale = await getRequestLocale();
+  const manifest = buildIsmailBoatsManifest(siteConfig.url, locale);
   const jsonLd = buildGalleryJsonLd(manifest);
 
   return (

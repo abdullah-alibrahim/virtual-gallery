@@ -4,9 +4,10 @@ import Link from "next/link";
 import { Share2 } from "lucide-react";
 
 import type { SceneManifest } from "@/core/entities";
+import { formatDimensions } from "@/core/value-objects/dimensions";
 import { formatMoney } from "@/core/value-objects/money";
 import { siteConfig } from "@/config/site";
-import { useT } from "@/i18n/locale-provider";
+import { useLocale, useT } from "@/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 
 /**
@@ -29,6 +30,7 @@ export function AccessibleListView({
   onShare?: () => void;
 }) {
   const t = useT();
+  const locale = useLocale();
   const artworkHref = (id: string) =>
     artworkHrefBase
       ? `${artworkHrefBase}?view=list#${id}`
@@ -113,7 +115,7 @@ export function AccessibleListView({
             href={`${siteConfig.url}/a/${manifest.artist.slug}`}
             className="text-white/45 underline-offset-4 hover:text-white/70 hover:underline"
           >
-            Artist profile
+            {t("walk.artistProfile")}
           </a>
         </div>
 
@@ -143,8 +145,11 @@ export function AccessibleListView({
                   </p>
                   <dl className="mt-5 space-y-0 text-sm">
                     <MetaRow
-                      label={t("walk.size")}
-                      value={`${artwork.dimensions.width} × ${artwork.dimensions.height} ${artwork.dimensions.unit}`}
+                      label={t("walk.measurements")}
+                      value={formatDimensions(
+                        artwork.dimensions,
+                        locale === "ar" ? "ar" : "en",
+                      )}
                     />
                     {artwork.price ? (
                       <MetaRow

@@ -19,6 +19,43 @@ export const ISMAIL_BOATS_TITLE_AR = "مراكب";
 export const ISMAIL_BOATS_SLUG = "ismail-rifai-marakeb";
 export const ISMAIL_EMAIL = "ismail@virtualgallery.dev";
 
+const ISMAIL_MEDIUM_AR: Readonly<Record<string, string>> = {
+  "Oil on canvas": "زيت على قماش",
+  "Ink on paper": "حبر على ورق",
+  "Acrylic on canvas": "أكريليك على قماش",
+  "Charcoal and acrylic": "فحم وأكريليك",
+  "Mixed media on canvas": "وسائط مختلطة على قماش",
+  "Ink, charcoal and gesso on paper": "حبر وفحم وجيسو على ورق",
+  "Monotype on paper": "مونوتيب على ورق",
+  "Oil, charcoal and mixed media": "زيت وفحم ووسائط مختلطة",
+  "Charcoal, ink and mixed media": "فحم وحبر ووسائط مختلطة",
+};
+
+export function ismailMediumLocalized(medium: string, arabic: boolean): string {
+  if (!arabic) return medium;
+  return ISMAIL_MEDIUM_AR[medium] ?? medium;
+}
+
+export function ismailWorkCopy(
+  work: IsmailWork,
+  arabic: boolean,
+): {
+  title: string;
+  description: string;
+  medium: string;
+  category: string;
+} {
+  const section = ISMAIL_SECTIONS.find((item) => item.id === ismailSectionOf(work));
+  return {
+    title: arabic ? work.titleAr : work.title,
+    description: arabic ? work.descriptionAr : work.description,
+    medium: ismailMediumLocalized(work.medium, arabic),
+    category: arabic
+      ? (work.categoryAr ?? section?.titleAr ?? "لوحة")
+      : (work.category ?? section?.title ?? "Painting"),
+  };
+}
+
 export type IsmailSectionId = "roads" | "figures" | "marakeb" | "shamsi";
 
 export interface IsmailSection {
@@ -152,8 +189,8 @@ export const ISMAIL_WORKS: readonly IsmailWork[] = [
     medium: "Oil on canvas",
     category: "Landscape",
     categoryAr: "منظر",
-    widthCm: 100,
-    heightCm: 100,
+    widthCm: 120,
+    heightCm: 120,
     priceAed: 18000,
     availability: "available",
     description:
@@ -171,6 +208,8 @@ export const ISMAIL_WORKS: readonly IsmailWork[] = [
     titleAr: "جرف الليل",
     year: 2025,
     medium: "Oil on canvas",
+    widthCm: 110,
+    heightCm: 110,
     description:
       "A dark slope under a thin dusk sky, marked by two yellow road lines.",
     descriptionAr: "منحدر داكن تحت سماء شفق رقيقة، وخطّان أصفران للطريق.",
@@ -185,6 +224,8 @@ export const ISMAIL_WORKS: readonly IsmailWork[] = [
     titleAr: "جبل الحبر",
     year: 2024,
     medium: "Ink on paper",
+    widthCm: 80,
+    heightCm: 80,
     description:
       "Monochrome wash: a dark mass over a pale field, misted like weather.",
     descriptionAr: "غسلة أحادية: كتلة داكنة فوق حقل باهت، كطقس ضبابي.",
@@ -199,6 +240,8 @@ export const ISMAIL_WORKS: readonly IsmailWork[] = [
     titleAr: "أشكال زرقاء",
     year: 2024,
     medium: "Acrylic on canvas",
+    widthCm: 100,
+    heightCm: 100,
     description:
       "Stylised figures in lavender and turquoise, outlined against a deep blue field.",
     descriptionAr: "أشكال بأرجواني وفيروزي على حقل أزرق عميق.",
@@ -213,6 +256,8 @@ export const ISMAIL_WORKS: readonly IsmailWork[] = [
     titleAr: "أفق شاحب",
     year: 2024,
     medium: "Ink on paper",
+    widthCm: 90,
+    heightCm: 90,
     description:
       "A quiet ink landscape — dark foreground, a pale oval of light, hills under haze.",
     descriptionAr: "منظر حبري هادئ: أمامية داكنة، بيضاوي شاحب من الضوء، وتلال تحت الضباب.",
@@ -227,6 +272,8 @@ export const ISMAIL_WORKS: readonly IsmailWork[] = [
     titleAr: "عناق",
     year: 2023,
     medium: "Charcoal and acrylic",
+    widthCm: 85,
+    heightCm: 85,
     description:
       "Two figures folded together on black — a sculptural, intimate mass.",
     descriptionAr: "شكلان يطويان بعضهما على أسود — كتلة نحتية حميمة.",
@@ -241,6 +288,8 @@ export const ISMAIL_WORKS: readonly IsmailWork[] = [
     titleAr: "أشرطة نيليّة",
     year: 2025,
     medium: "Oil on canvas",
+    widthCm: 120,
+    heightCm: 120,
     description:
       "A stormy indigo field above mustard-yellow bands and lilac strata.",
     descriptionAr: "حقل نيلي عاصف فوق أشرطة صفراء وطبقات ليلكية.",
@@ -255,6 +304,8 @@ export const ISMAIL_WORKS: readonly IsmailWork[] = [
     titleAr: "عناق دائري",
     year: 2024,
     medium: "Charcoal and acrylic",
+    widthCm: 95,
+    heightCm: 95,
     description:
       "Two figures locked in a circular hold on black — grey stone texture.",
     descriptionAr: "شكلان في عناق دائري على أسود — ملمس رمادي كالحجر.",
@@ -269,6 +320,8 @@ export const ISMAIL_WORKS: readonly IsmailWork[] = [
     titleAr: "رأس شاحب",
     year: 2018,
     medium: "Acrylic on canvas",
+    widthCm: 80,
+    heightCm: 80,
     description:
       "A luminous pale head over a plum body, framed by thin white edges on black.",
     descriptionAr: "رأس شاحب مضيء فوق جسد برقوقي، بإطار أبيض رفيع على أسود.",
@@ -283,6 +336,8 @@ export const ISMAIL_WORKS: readonly IsmailWork[] = [
     titleAr: "أفق الحبر",
     year: 2024,
     medium: "Ink on paper",
+    widthCm: 90,
+    heightCm: 90,
     description:
       "High-contrast ink bands — a pale bleed between two dark fields.",
     descriptionAr: "أشرطة حبر عالية التباين — نزف شاحب بين حقلين داكنين.",
@@ -297,6 +352,8 @@ export const ISMAIL_WORKS: readonly IsmailWork[] = [
     titleAr: "نحاس وذهب",
     year: 2025,
     medium: "Mixed media on canvas",
+    widthCm: 110,
+    heightCm: 110,
     description:
       "Burnt-orange texture over charcoal bands, cut by two metallic gold lines.",
     descriptionAr: "ملمس برتقالي محروق فوق أشرطة فحمية، يشقّه خطّان ذهبيان.",
@@ -311,6 +368,8 @@ export const ISMAIL_WORKS: readonly IsmailWork[] = [
     titleAr: "تلال قرمزية",
     year: 2025,
     medium: "Oil on canvas",
+    widthCm: 115,
+    heightCm: 115,
     description:
       "Fiery crimson hills under a slate sky, grounded by charcoal and a gold seam.",
     descriptionAr: "تلال قرمزية تحت سماء رصاصية، وأرضية فحمية بخط ذهبي.",
@@ -325,6 +384,8 @@ export const ISMAIL_WORKS: readonly IsmailWork[] = [
     titleAr: "طريق الصحراء",
     year: 2023,
     medium: "Mixed media on canvas",
+    widthCm: 120,
+    heightCm: 120,
     description:
       "Craggy ochre terrain above a double yellow road through dark asphalt.",
     descriptionAr: "تضاريس مغرة فوق طريق بخطين أصفرين عبر إسفلت داكن.",
@@ -413,8 +474,8 @@ export const ISMAIL_BOAT_WORKS: readonly IsmailWork[] = [
     medium: "Ink, charcoal and gesso on paper",
     category: "Marakeb",
     categoryAr: "مراكب",
-    widthCm: 50,
-    heightCm: 100,
+    widthCm: 70,
+    heightCm: 70,
     priceAed: 9000,
     availability: "available",
     inventoryNo: "IR-MKB-04",

@@ -42,7 +42,11 @@
     "admin": "Admin",
     "manageBilling": "Manage billing",
     "upgradePlan": "Upgrade plan",
-    "home": "Home"
+    "home": "Home",
+    "theme": "Colour theme",
+    "themeLight": "Light",
+    "themeSystem": "System",
+    "themeDark": "Dark"
   },
   "nav": {
     "templates": "Templates",
@@ -141,6 +145,9 @@
     "free": "Free",
     "pro": "Pro",
     "studioPlan": "Studio",
+    "freeBlurb": "Publish your first walkable show.",
+    "proBlurb": "More rooms, Pro templates, deeper analytics.",
+    "studioBlurb": "Serious volume for working artists and small teams.",
     "comparison": "Compare plans",
     "feature": "Feature",
     "mostChosen": "Most chosen",
@@ -656,6 +663,7 @@
     "enquire": "Enquire",
     "onRequest": "On request",
     "size": "Size",
+    "measurements": "Measurements",
     "previewInRooms": "Preview in rooms",
     "yourSpace": "Your space",
     "walk": "Walk",
@@ -682,7 +690,7 @@
     "inventory": "Inventory",
     "condition": "Condition",
     "conditionFallback": "Excellent — studio condition",
-    "exhibition": "Exhibition history",
+    "exhibitionHistory": "Exhibition history",
     "exhibitionFallback": "Studio hang · Virtual Gallery",
     "aboutFallback": "A studio work hung at exhibition scale. Full catalogue notes are being prepared — enquire for a condition report, shipping, or a studio visit.",
     "availability": "Availability",
@@ -714,7 +722,16 @@
     "enterEvening": "Enter evening light",
     "copyEveningInvite": "Copy invite link",
     "eveningInviteCopied": "Evening invite copied",
-    "simulateEvening": "Simulate evening (demo)"
+    "simulateEvening": "Simulate evening (demo)",
+    "artistProfile": "Artist profile",
+    "backToWalk": "Back to walk",
+    "printSavePdf": "Print / Save PDF",
+    "exhibitionCatalogue": "Exhibition catalogue",
+    "printedOn": "Printed {date} · {site}",
+    "dimensions": "Dimensions",
+    "detailsFor": "Details for {title}",
+    "artworksNav": "Artworks in this gallery",
+    "qrAlt": "QR code linking to this gallery"
   },
   "mockups": {
     "title": "Preview in rooms",

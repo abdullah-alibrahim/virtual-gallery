@@ -48,6 +48,9 @@ describe("dimensions", () => {
     expect(formatDimensions(createDimensions(120, 90, "cm"))).toBe(
       "120 × 90 cm",
     );
+    expect(formatDimensions(createDimensions(120, 90, "cm"), "ar")).toBe(
+      "120 × 90 سم",
+    );
   });
 
   it("computes aspect ratio", () => {

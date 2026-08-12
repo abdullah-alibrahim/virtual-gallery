@@ -809,7 +809,7 @@ export function GalleryViewer({
         />
       ) : null}
 
-      <nav className="sr-only" aria-label="Artworks in this gallery">
+      <nav className="sr-only" aria-label={t("walk.artworksNav")}>
         <ul>
           {manifest.artworks.map((artwork) => (
             <li key={artwork.id}>

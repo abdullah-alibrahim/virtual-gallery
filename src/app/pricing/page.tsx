@@ -123,6 +123,13 @@ export default async function PricingPage() {
               ? "/settings/billing"
               : "/sign-up";
             const planName = t(planLabelKey(planId));
+            const planBlurb =
+              planId === "free"
+                ? t("pricing.freeBlurb")
+                : planId === "pro"
+                  ? t("pricing.proBlurb")
+                  : t("pricing.studioBlurb");
+            const periodLabel = period ? t("pricing.perMonth") : null;
             const ctaLabel =
               planId === "free"
                 ? signedIn
@@ -152,14 +159,14 @@ export default async function PricingPage() {
                   </p>
                   <p className="font-serif text-5xl tracking-tight">
                     {price}
-                    {period ? (
+                    {periodLabel ? (
                       <span className="ml-1 text-base text-muted-foreground">
-                        {period}
+                        {periodLabel}
                       </span>
                     ) : null}
                   </p>
                   <p className="text-base text-muted-foreground text-pretty">
-                    {plan.blurb}
+                    {planBlurb}
                   </p>
                 </div>
                 <ul className="flex flex-1 flex-col gap-3 border-t border-border pt-6 text-sm text-muted-foreground">

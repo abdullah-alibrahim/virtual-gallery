@@ -5,11 +5,12 @@ import { ChevronLeft, ChevronRight, DoorOpen, Share2, X, ZoomIn } from "lucide-r
 import { useEffect, useRef } from "react";
 
 import type { SceneArtwork, SceneManifest } from "@/core/entities";
+import { formatDimensions } from "@/core/value-objects/dimensions";
 import { formatMoney } from "@/core/value-objects/money";
 import { EnquiryForm } from "@/components/shared/enquiry-form";
 import { SocialLinks } from "@/components/shared/social-links";
 import { usePrefersReducedMotion } from "@/hooks/use-media-query";
-import { useT } from "@/i18n";
+import { useLocale, useT } from "@/i18n";
 import type { MessageKey } from "@/i18n/translate";
 import { resolveArtistSocialLinks } from "@/lib/social-urls";
 import { cn } from "@/lib/utils";
@@ -62,6 +63,7 @@ export function ArtworkDetailSheet({
   onEnterInnerWorld?: () => void;
 }) {
   const t = useT();
+  const locale = useLocale();
   const reduceMotion = usePrefersReducedMotion();
   const panelRef = useRef<HTMLElement>(null);
   const priceOnRequest = artwork.availability === "priceOnRequest";
@@ -200,8 +202,11 @@ export function ArtworkDetailSheet({
           value={artwork.medium?.trim() || t("walk.mediumFallback")}
         />
         <Row
-          label={t("walk.size")}
-          value={`${artwork.dimensions.width} × ${artwork.dimensions.height} ${artwork.dimensions.unit}`}
+          label={t("walk.measurements")}
+          value={formatDimensions(
+            artwork.dimensions,
+            locale === "ar" ? "ar" : "en",
+          )}
         />
         {artwork.year ? (
           <Row label={t("walk.year")} value={String(artwork.year)} />
@@ -228,7 +233,10 @@ export function ArtworkDetailSheet({
           value={inventoryNo(artwork.id)}
         />
         <Row label={t("walk.condition")} value={t("walk.conditionFallback")} />
-        <Row label={t("walk.exhibition")} value={t("walk.exhibitionFallback")} />
+        <Row
+          label={t("walk.exhibitionHistory")}
+          value={t("walk.exhibitionFallback")}
+        />
         <div className="border-t border-white/[0.08] pt-4 mt-3">
           <dt className="text-[10px] tracking-[0.16em] text-white/40 uppercase">
             {t("walk.aboutWork")}

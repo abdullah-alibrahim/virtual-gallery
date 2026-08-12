@@ -3,8 +3,11 @@
 import Link from "next/link";
 
 import type { SceneManifest } from "@/core/entities";
+import { formatDimensions } from "@/core/value-objects/dimensions";
 import { formatMoney } from "@/core/value-objects/money";
 import { siteConfig } from "@/config/site";
+import { useLocale, useT } from "@/i18n/locale-provider";
+import type { MessageKey } from "@/i18n/translate";
 
 /**
  * Printable exhibition catalogue — designed for paper / PDF “Save as PDF”.
@@ -19,12 +22,17 @@ export function PrintCatalogue({
   walkHref: string;
   listHref?: string;
 }) {
+  const t = useT();
+  const locale = useLocale();
   const works = manifest.artworks;
-  const printed = new Date().toLocaleDateString("en-GB", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const printed = new Date().toLocaleDateString(
+    locale === "ar" ? "ar" : "en-GB",
+    {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    },
+  );
 
   return (
     <main className="print-catalogue min-h-dvh bg-[color:var(--luxury-stone)] text-[color:var(--luxury-ink)]">
@@ -35,14 +43,14 @@ export function PrintCatalogue({
               href={walkHref}
               className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             >
-              Back to walk
+              {t("walk.backToWalk")}
             </Link>
             {listHref ? (
               <Link
                 href={listHref}
                 className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
               >
-                Catalogue list
+                {t("walk.catalogueList")}
               </Link>
             ) : null}
           </div>
@@ -51,7 +59,7 @@ export function PrintCatalogue({
             onClick={() => window.print()}
             className="border border-border bg-background px-4 py-2 text-sm tracking-wide transition-colors hover:border-[color:var(--luxury-brass)]"
           >
-            Print / Save PDF
+            {t("walk.printSavePdf")}
           </button>
         </div>
       </div>
@@ -59,7 +67,7 @@ export function PrintCatalogue({
       <div className="mx-auto w-full max-w-4xl px-4 py-14 sm:px-6 md:py-20">
         <header className="border-b border-[color:var(--luxury-ink)]/15 pb-10">
           <p className="text-[11px] tracking-[0.22em] text-muted-foreground uppercase">
-            Exhibition catalogue
+            {t("walk.exhibitionCatalogue")}
           </p>
           <h1 className="mt-4 font-serif text-4xl tracking-tight text-balance md:text-5xl">
             {manifest.title}
@@ -67,7 +75,8 @@ export function PrintCatalogue({
           <p className="mt-3 text-base text-muted-foreground">
             {manifest.artist.displayName}
             <span className="mx-2 text-border">·</span>
-            {works.length} {works.length === 1 ? "work" : "works"}
+            {works.length}{" "}
+            {works.length === 1 ? t("walk.work") : t("walk.works")}
           </p>
           {manifest.description ? (
             <p className="mt-6 max-w-prose text-[15px] leading-relaxed text-foreground/80">
@@ -75,7 +84,7 @@ export function PrintCatalogue({
             </p>
           ) : null}
           <p className="mt-8 text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
-            Printed {printed} · {siteConfig.name}
+            {t("walk.printedOn", { date: printed, site: siteConfig.name })}
           </p>
         </header>
 
@@ -99,19 +108,21 @@ export function PrintCatalogue({
                 <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
                   <div className="flex justify-between gap-4 sm:block">
                     <dt className="text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
-                      Dimensions
+                      {t("walk.dimensions")}
                     </dt>
                     <dd className="sm:mt-0.5">
-                      {artwork.dimensions.width} × {artwork.dimensions.height}{" "}
-                      {artwork.dimensions.unit}
+                      {formatDimensions(
+                        artwork.dimensions,
+                        locale === "ar" ? "ar" : "en",
+                      )}
                     </dd>
                   </div>
                   <div className="flex justify-between gap-4 sm:block">
                     <dt className="text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
-                      Availability
+                      {t("walk.availability")}
                     </dt>
                     <dd className="sm:mt-0.5">
-                      {availabilityLabel(artwork.availability)}
+                      {availabilityLabel(artwork.availability, t)}
                       {artwork.price ? ` · ${formatMoney(artwork.price)}` : ""}
                     </dd>
                   </div>
@@ -137,17 +148,22 @@ export function PrintCatalogue({
   );
 }
 
-function availabilityLabel(value: string): string {
+function availabilityLabel(
+  value: string,
+  t: (key: MessageKey) => string,
+): string {
   switch (value) {
     case "nfs":
-      return "Not for sale";
+      return t("editor.nfs");
     case "priceOnRequest":
-      return "Price on request";
+      return t("editor.priceOnRequest");
     case "reserved":
-      return "Reserved";
+      return t("editor.reserved");
     case "sold":
-      return "Sold";
+      return t("editor.sold");
+    case "available":
+      return t("editor.available");
     default:
-      return value.charAt(0).toUpperCase() + value.slice(1);
+      return value;
   }
 }

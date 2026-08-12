@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 export function LegalShell({
   title,
   children,
-  authCta = { href: "/sign-in?force=1", label: "Sign in" },
+  authCta,
 }: {
   title: string;
   children: ReactNode;
@@ -20,6 +20,10 @@ export function LegalShell({
   authCta?: { href: string; label: string };
 }) {
   const t = useT();
+  const cta = authCta ?? {
+    href: "/sign-in?force=1",
+    label: t("common.signIn"),
+  };
 
   return (
     <div className="relative min-h-dvh w-full overflow-x-hidden">
@@ -38,12 +42,12 @@ export function LegalShell({
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
             <Link
-              href={authCta.href}
+              href={cta.href}
               className={cn(
                 buttonVariants({ size: "sm", variant: "secondary" }),
               )}
             >
-              {authCta.label}
+              {cta.label}
             </Link>
           </div>
         </div>

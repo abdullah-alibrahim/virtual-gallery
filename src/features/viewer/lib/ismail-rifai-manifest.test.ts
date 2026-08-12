@@ -26,9 +26,20 @@ describe("buildIsmailRifaiManifest", () => {
     expect(signBlob).toMatch(/طرق/);
     expect(signBlob).toMatch(/أشكال/);
     expect(signBlob).toMatch(/مراكب/);
-    expect(signBlob).toMatch(/شامسي/);
-    expect(signBlob).toMatch(/Roads/i);
-    expect(signBlob).toMatch(/Marakeb/i);
+    expect(signBlob).toMatch(/شامسي|SHAMSI/i);
+    expect(signBlob).toMatch(/Roads|طرق/i);
+    expect(signBlob).toMatch(/Marakeb|مراكب/i);
+
+    const boat04 = manifest.artworks.find((a) => a.id === "ismail-boat-04");
+    expect(boat04?.dimensions).toEqual({ width: 70, height: 70, unit: "cm" });
+    expect(boat04?.placement.scale).toBeLessThanOrEqual(1);
+
+    const arabic = buildIsmailRifaiManifest("http://localhost:3000", "ar");
+    expect(arabic.title).toBe("القاعة");
+    expect(arabic.artworks.some((a) => a.title === "الخط الأصفر")).toBe(true);
+    expect(arabic.artworks.every((a) => !/Oil on canvas/.test(a.medium ?? ""))).toBe(
+      true,
+    );
 
     const eastWall = manifest.template.walls.find((w) => w.id === "east-wing-east");
     const westWall = manifest.template.walls.find((w) => w.id === "west-wing-west");

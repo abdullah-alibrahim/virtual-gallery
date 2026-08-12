@@ -115,8 +115,19 @@ export function estimateFromPixels(
   };
 }
 
-export function formatDimensions(dimensions: Dimensions): string {
+export function formatDimensions(
+  dimensions: Dimensions,
+  locale: "en" | "ar" = "en",
+): string {
   const { width, height, unit } = dimensions;
   const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
-  return `${fmt(width)} × ${fmt(height)} ${unit}`;
+  const unitLabel =
+    unit === "cm"
+      ? locale === "ar"
+        ? "سم"
+        : "cm"
+      : locale === "ar"
+        ? "بوصة"
+        : "in";
+  return `${fmt(width)} × ${fmt(height)} ${unitLabel}`;
 }
